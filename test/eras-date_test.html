@@ -1,35 +1,214 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+<html lang='en'>
 
-    <title>eras-date test</title>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes'>
 
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
+  <title>eras-date test</title>
 
-    <link rel="import" href="../eras-date.html">
-  </head>
-  <body>
-    <test-fixture id="date-fixture">
-      <template>
-        <eras-date></eras-date>
-      </template>
-    </test-fixture>
+  <script src='../../webcomponentsjs/webcomponents-lite.js'></script>
+  <script src='../../web-component-tester/browser.js'></script>
 
-    <script>
-      suite('eras-date', function() {
-        var el;
+  <script src='../bower_components/iron-test-helpers/mock-interactions.js'></script>
+  <link rel="import" href="../bower_components/eras-external/moment.html">
+  <link rel='import' href='../eras-calendar-page.html'>
+  <link rel='import' href='../eras-calendar.html'>
+  <link rel='import' href='../eras-date.html'>
+</head>
 
-        setup(function(){
-          el = fixture('date-fixture');
+<body>
+
+  <test-fixture id="page-fixture">
+    <template>
+      <eras-calendar-page></eras-calendar-page>
+    </template>
+  </test-fixture>
+
+  <!-- <template id='page-template' is='dom-bind'>
+    <eras-calendar-page id='page-element' min='{{min}}' max='{{max}}' value='{{value}}' month='{{month}}'></eras-calendar-page>
+  </template> -->
+
+  <script>
+    // var pageApp = document.querySelector('#page-template');
+
+    suite('eras-calendar-page', function () {
+      var el;
+
+      setup(function () {
+        el = fixture('page-fixture');
+        // el.min = moment().date(5).format('YYYY-MM-DD');
+        // el.max = moment().date(moment().daysInMonth() - 5).format('YYYY-MM-DD');
+        // el.month = moment().format('YYYY-MM');
+        // el.value = moment().date(15).format('YYYY-MM-DD');
+      });
+
+      suite('setup', function () {
+        test('instantiation', function (done) {
+          assert.equal(el.is, 'eras-calendar-page');
+          done();
         });
 
-        test('instantiation', function() {
-          assert.equal(el.is, 'eras-date');
+        suite('dates', function () {
+          suite('counts', function () {
+            setup(function () {
+              el.min = '2000-01-01';
+              el.max = '2020-12-31';
+            });
+
+            var dataTest = function (month, expected) {
+              return function (done) {
+                // get the specified month
+                var m = moment({ year: 2000, month: month - 1 }); // for some reason months in moment.js are zero based (0-11)
+
+                // set month on the element
+                el.month = m.format('YYYY-MM');
+
+                var dates = el._getDates();
+                assert.equal(expected, dates.length, 'expected ' + m.format('MMM YYYY') + ' to have ' + expected + ' days, not ' + dates.length);
+                done();
+              };
+            };
+
+            var data = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; // 2000 is a leap year
+
+            for (var i = 0; i < data.length; i++)
+              test(moment({ month: i }).format('MMMM').toLowerCase(), dataTest(i + 1, data[i]));
+          });
+
+          suite('enabled/disabled', function () {
+            var dates;
+
+            suiteSetup(function () {
+              el.min = '2017-08-05';
+              el.max = '2017-08-26';
+              el.month = '2017-08';
+              dates = el._getDates();
+            });
+
+            var dataTest = function (date, expected) {
+              return function (done) {
+                var actual = dates[date - 1];
+                assert.equal(expected, !actual.disabled, 'expected this date to be ' + (expected ? 'enabled' : 'disabled'));
+                done();
+              };
+            };
+
+            for (var i = 1; i <= 31; i++) {
+              var m = moment('2017-08-' + i, 'YYYY-MM-DD');
+              var expected = i >= 5 && i <= 26; // is between min and max
+              test(m.format('Do'), dataTest(i, expected));
+            }
+          });
+
+          suite('selected', function () {
+            var dates;
+
+            suiteSetup(function () {
+              el.min = '2017-08-05';
+              el.max = '2017-08-25';
+              el.month = '2017-08';
+              el.value = '2017-08-14'; // selected date
+              dates = el._getDates();
+            });
+
+            var dataTest = function (date, expected) {
+              return function (done) {
+                var actual = dates[date - 1];
+                assert.equal(expected, actual.selected, 'expected this date to be ' + (expected ? 'selected' : 'unselected'));
+                done();
+              };
+            };
+
+            for (var i = 1; i <= 31; i++) {
+              var m = moment('2017-08-' + i, 'YYYY-MM-DD');
+              var expected = i == 14; // is the date specified above
+              test(m.format('Do'), dataTest(i, expected));
+            }
+          });
         });
       });
-    </script>
-  </body>
+    });
+  </script>
+
+
+  <test-fixture id='month-fixture'>
+    <template>
+      <eras-calendar></eras-calendar>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('eras-calendar', function () {
+      var el;
+
+      setup(function () {
+        el = fixture('month-fixture');
+      });
+
+      suite('setup', function () {
+        test('instantiation', function (done) {
+          assert.equal(el.is, 'eras-calendar');
+          done();
+        });
+
+        suite('days', function () {
+          var days;
+
+          suiteSetup(function () {
+            days = el._getDays();
+          });
+
+          test('count', function (done) {
+            assert.equal(7, days.length, 'expected there to be 7 days, not ' + days.length);
+            done();
+          });
+
+          var dataTest = function (index, expected) {
+            return function (done) {
+              var actual = days[index].day;
+              assert.equal(expected, actual, 'expected day ' + (index + 1) + ' of the week to be ' + expected + ' not ' + actual);
+              done();
+            };
+          };
+
+          var data = [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
+          ];
+
+          for (var i = 0; i < data.length; i++)
+            test(data[i].toLowerCase(), dataTest(i, data[i]));
+        });
+      });
+    });
+  </script>
+
+
+  <test-fixture id='date-fixture'>
+    <template>
+      <eras-date></eras-date>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('eras-date', function () {
+      var el;
+
+      setup(function () {
+        el = fixture('date-fixture');
+      });
+
+      test('instantiation', function () {
+        assert.equal(el.is, 'eras-date');
+      });
+    });
+  </script>
+</body>
+
 </html>

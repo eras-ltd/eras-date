@@ -1,0 +1,112 @@
+<link rel='import' href='../polymer/polymer.html'>
+<link rel='import' href='../iron-flex-layout/iron-flex-layout-classes.html'>
+<link rel='import' href='../eras-external/moment.html'>
+<!--
+`eras-calendar-page`
+
+### Styling
+Property|Description|Default
+--------|-----------|-------
+`--date-width`|Width of the element|`250px`
+
+@demo demo/calendar-page.html
+-->
+<dom-module id='eras-calendar-page'>
+  <template>
+    <style include='iron-flex iron-flex-alignment'>
+       :host {
+        display: block;
+        --element-width: var(--date-width, 250px);
+        --cell-width: calc(var(--element-width)/7);
+      }
+
+      .cell {
+        width: var(--cell-width);
+      }
+    </style>
+
+    <div id="days" class="layout horizontal center">
+      <template is="dom-repeat" items="{{_getDays()}}">
+        <div class="cell">
+          {{item.initial}}
+        </div>
+      </template>
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'eras-calendar-page',
+      properties: {
+        /**
+         * The currently selected date in the 'YYYY-MM-DD' format.
+         */
+        value: {
+          type: String,
+          value: function () { moment().format('YYYY-MM-DD'); },
+          notify: true
+        },
+
+        /**
+         * The earliest date allowed in 'YYYY-MM-DD' format. 
+         * Defaults to 100 years ago.
+         */
+        min: {
+          type: String,
+          value: function () { moment().subtract(100, 'years').format('YYYY-MM-DD'); }
+        },
+
+        /**
+         * The latest date allowed in 'YYYY-MM-DD' format.
+         * Defaults to 5 years in the future.
+         */
+        max: {
+          type: String,
+          value: function () { moment().add(5, 'years').format('YYYY-MM-DD'); }
+        },
+
+        /**
+         * The month that will be displayed in the 'YYYY-MM' format.
+         */
+        month: {
+          type: String,
+          value: function () { moment().format('YYYY-MM'); }
+        }
+      },
+
+      _getDays: function () {
+        var arr = moment.weekdays().map(function (d) { return { day: d, initial: d[0] } });
+        arr.push(arr.shift());
+        return arr;
+      },
+
+      _getDates: function () {
+        // console.info(this.min, this.max, this.month);
+        
+        if (!this.min || !this.max || !this.month)
+          return;
+
+        
+
+        var selected = moment(this.value, 'YYYY-MM-DD');
+        var month = moment(this.month, 'YYYY-MM');
+        var min = moment(this.min, 'YYYY-MM-DD');
+        var max = moment(this.max, 'YYYY-MM-DD');
+        var dates = [];
+
+        for (var i = 1; i <= month.daysInMonth(); i++) {
+          var date = moment({ year:month.year(), month:month.month(), date:i });
+          
+          dates.push({
+            date: i,
+            today: moment().isSame(date, 'date'),
+            selected: date.isSame(selected, 'date'),
+            disabled: date.isBefore(min, 'date') || date.isAfter(max, 'date')
+          });
+        }
+
+        return dates;
+      }
+    });
+  </script>
+</dom-module>
