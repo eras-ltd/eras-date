@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>eras-date test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../eras-date.html">
+  </head>
+  <body>
+    <test-fixture id="date-fixture">
+      <template>
+        <eras-date></eras-date>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('eras-date', function() {
+        var el;
+
+        setup(function(){
+          el = fixture('date-fixture');
+        });
+
+        test('instantiation', function() {
+          assert.equal(el.is, 'eras-date');
+        });
+      });
+    </script>
+  </body>
+</html>
