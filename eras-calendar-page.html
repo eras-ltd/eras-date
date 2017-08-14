@@ -80,14 +80,17 @@ Property|Description|Default
         return arr;
       },
 
+      /**
+       * Gets an array of objects used to display the dates
+       * in the specified month.
+       * @return {{ date:Number, today:Boolean, selected:Boolean, enabled:Boolean }[]}
+       */
       _getDates: function () {
         // console.info(this.min, this.max, this.month);
         
         if (!this.min || !this.max || !this.month)
           return;
-
-        
-
+      
         var selected = moment(this.value, 'YYYY-MM-DD');
         var month = moment(this.month, 'YYYY-MM');
         var min = moment(this.min, 'YYYY-MM-DD');
@@ -101,7 +104,7 @@ Property|Description|Default
             date: i,
             today: moment().isSame(date, 'date'),
             selected: date.isSame(selected, 'date'),
-            disabled: date.isBefore(min, 'date') || date.isAfter(max, 'date')
+            enabled: !(date.isBefore(min, 'date') || date.isAfter(max, 'date')) // inclusive
           });
         }
 

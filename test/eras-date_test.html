@@ -89,7 +89,7 @@
             var dataTest = function (date, expected) {
               return function (done) {
                 var actual = dates[date - 1];
-                assert.equal(expected, !actual.disabled, 'expected this date to be ' + (expected ? 'enabled' : 'disabled'));
+                assert.equal(expected, actual.enabled, 'expected this date to be ' + (expected ? 'enabled' : 'disabled'));
                 done();
               };
             };
