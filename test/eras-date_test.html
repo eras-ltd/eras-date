@@ -138,7 +138,7 @@
           var dataTest = function (date, expected) {
             return function (done) {
               flush(function () {
-                var cell = el.querySelectorAll('.cell:not(.blank)')[date - 1];                
+                var cell = el.querySelectorAll('.cell:not(.blank)')[date - 1];
                 MockInteractions.tap(cell);
 
                 flush(function () {
@@ -152,21 +152,19 @@
                   }
 
                   done();
-                });                
+                });
               });
             };
           };
 
           for (var i = 1; i <= 31; i++)
-            test(moment(i,'D').format('Do'), dataTest(i, '2017-08-' + i));
-
+            test(moment(i, 'D').format('Do'), dataTest(i, '2017-08-' + i));
         });
       });
     });
   </script>
 
-
-  <test-fixture id='month-fixture'>
+  <test-fixture id='calendar-fixture'>
     <template>
       <eras-calendar></eras-calendar>
     </template>
@@ -177,7 +175,7 @@
       var el;
 
       setup(function () {
-        el = fixture('month-fixture');
+        el = fixture('calendar-fixture');
       });
 
       suite('setup', function () {
@@ -218,6 +216,104 @@
 
           for (var i = 0; i < data.length; i++)
             test(data[i].toLowerCase(), dataTest(i, data[i]));
+        });
+
+        suite('buttons', function () {
+          suite('previous/next', function () {
+            var previousSpy;
+            var nextSpy;
+
+            setup(function () {
+              el.min = '2017-01-01';
+              el.max = '2017-12-31';
+              el.value = '2017-07-01';
+              el._page = 0;
+              previousSpy = sinon.spy(el, 'previous');
+              nextSpy = sinon.spy(el, 'next');
+            });
+
+            teardown(function () {
+              el.previous.restore();
+              el.next.restore();
+            });
+
+            test('previous', function (done) {
+              MockInteractions.tap(el.$.previous);
+              assert(previousSpy.calledOnce, 'expected `eras-calendar.previous()` to have been called once');
+              assert.equal(1, el._page, 'expected the page to have changed');
+              assert.equal('2017-06', el.$.pages.querySelector('[index="1"]').month, 'expected the new pages month to have been set to 2017-06');
+              done();
+            });
+
+            test('next', function (done) {
+              MockInteractions.tap(el.$.next);
+              assert(nextSpy.calledOnce, 'expected `eras-calendar.next()` to have been called once');
+              assert.equal(1, el._page, 'expected the page to have changed');
+              assert.equal('2017-08', el.$.pages.querySelector('[index="1"]').month, 'expected the new pages month to have been set to 2017-08');
+              done();
+            });
+          });
+
+          suite('enable/disable', function () {
+            var dataTest = function (min, max, value, previousDisabled, nextDisabled) {
+              return function () {
+                setup(function () {
+                  el.min = min;
+                  el.max = max;
+                  el.value = value;
+                });
+
+                test('previous', function (done) {
+                  flush(function () {
+                    assert.equal(previousDisabled, el._previousDisabled, 'expected previous button to be ' + (previousDisabled ? 'disabled' : 'enabled'));
+                    done();
+                  });
+                });
+
+                test('next', function (done) {
+                  flush(function () {
+                    assert.equal(nextDisabled, el._nextDisabled, 'expected next button to be ' + (nextDisabled ? 'disabled' : 'enabled'));
+                    done();
+                  });
+                });
+              };
+            };
+
+            var data = [
+              { name: 'both disabled', min: '2017-08-01', max: '2017-08-31', value: '2017-08-15', previousDisabled: true, nextDisabled: true },
+              { name: 'both enabled', min: '2017-07-01', max: '2017-09-31', value: '2017-08-15', previousDisabled: false, nextDisabled: false },
+              { name: 'previous disabled', min: '2017-08-01', max: '2017-09-31', value: '2017-08-15', previousDisabled: true, nextDisabled: false },
+              { name: 'next disabled', min: '2017-07-01', max: '2017-08-31', value: '2017-08-15', previousDisabled: false, nextDisabled: true }
+            ];
+
+            for (var i = 0; i < data.length; i++)
+              suite(data[i].name, dataTest(data[i].min, data[i].max, data[i].value, data[i].previousDisabled, data[i].nextDisabled));
+          });
+        });
+
+        suite('selection', function () {
+          var page;
+          var spy;
+
+          setup(function () {
+            el.min = '2017-08-01';
+            el.min = '2017-08-31';
+            el.value = '2017-08-15';
+            el._page = 0;
+            page = el.$.pages.querySelector('[index="' + el._page + '"]');
+            spy = sinon.spy(el, '_dateSelected');
+          });
+
+          teardown(function () {
+            el._dateSelected.restore();
+          });
+
+          test('new date', function (done) {
+            var newDate = '2017-08-05';
+            page.fire('date-selected', { date: newDate });
+            assert(spy.calledOnce, 'expected `eras-calendar._dateSelected()` to have been called once');
+            done();
+          });
         });
       });
     });
