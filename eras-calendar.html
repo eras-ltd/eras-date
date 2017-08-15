@@ -1,6 +1,14 @@
 <link rel='import' href='../polymer/polymer.html'>
 <link rel='import' href='../iron-flex-layout/iron-flex-layout-classes.html'>
+<link rel='import' href='../neon-animation/neon-animated-pages.html'>
+<link rel='import' href='../neon-animation/animations/slide-left-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-right-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-from-left-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-from-right-animation.html'>
+<link rel='import' href='../paper-icon-button/paper-icon-button.html'>
 <link rel='import' href='../eras-external/moment.html'>
+<link rel='import' href='../eras-date/eras-calendar-page.html'>
+
 <!--
 `eras-calendar`
 
@@ -21,7 +29,16 @@ Property|Description|Default
         --date-weekdays-height: var(--cell-size);
         --date-month-height: 40px;
         width: var(--element-width);
-        background-color: yellow;
+        position: relative;
+        /* background-color: yellow; */
+      }
+
+      #static {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 2;
       }
 
       #nav {
@@ -30,6 +47,13 @@ Property|Description|Default
 
       #days {
         height: var(--date-weekdays-height);
+        color: var(--paper-grey-700);
+      }
+
+      #pages {
+        height: calc(var(--cell-size) * 6 + var(--date-weekdays-height) + var(--date-month-height));
+        z-index: 1;
+        overflow: hidden;
       }
 
       .cell {
@@ -39,21 +63,30 @@ Property|Description|Default
         justify-content: center;
         align-items: center;
         font-size: 12px;
-        background-color: lightseagreen;
+        /* background-color: lightseagreen; */
       }
     </style>
 
-    <div id="nav">
+    <div id='static'>
+      <div id='nav' class='layout horizontal center'>
+        <paper-icon-button icon='chevron-left' disabled$='{{_previousDisabled}}' on-tap='previous'></paper-icon-button>
+        <div class='flex'></div>
+        <paper-icon-button icon='chevron-right' disabled$='{{_nextDisabled}}' on-tap='next'></paper-icon-button>
+      </div>
 
+      <div id='days' class='layout horizontal center'>
+        <template is='dom-repeat' items='{{_getDays()}}'>
+          <div class='cell'>
+            {{item.initial}}
+          </div>
+        </template>
+      </div>
     </div>
 
-    <div id="days" class="layout horizontal center">
-      <template is="dom-repeat" items="{{_getDays()}}">
-        <div class="cell">
-          {{item.initial}}
-        </div>
-      </template>
-    </div>
+    <neon-animated-pages id='pages' selected='{{_page}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
+      <eras-calendar-page index='0' value$='[[value]]' min$='{{min}}' max$='{{max}}' month='2000-01' on-date-selected='_dateSelected'></eras-calendar-page>
+      <eras-calendar-page index='1' value$='[[value]]' min$='{{min}}' max$='{{max}}' month='2000-01' on-date-selected='_dateSelected'></eras-calendar-page>
+    </neon-animated-pages>
 
   </template>
   <script>
@@ -74,14 +107,146 @@ Property|Description|Default
         /** The latest date allowed in 'YYYY-MM-DD' format. */
         max: String,
 
-        /** The month that will be displayed in the 'YYYY-MM' format. */
-        month: String,
+        /** The index of the calendar page to show (0 or 1) */
+        _page: Number,
+
+        /** Whether or not to disable the 'previous' button */
+        _previousDisabled: {
+          type: Boolean,
+          value: false,
+          computed: '_computePreviousDisabled(_page, min)'
+        },
+
+        /** Whether or not to disable the 'next' button */
+        _nextDisabled: {
+          type: Boolean,
+          value: false,
+          computed: '_computeNextDisabled(_page, max)'
+        },
+
+        /**
+         * An associative array of animations to use when transitioning between pages.
+         * @type {String[]}
+         */
+        _animations: {
+          type: Array,
+          readOnly: true,
+          value: {
+            'to-left': 'slide-left-animation',
+            'to-right': 'slide-right-animation',
+            'from-left': 'slide-from-left-animation',
+            'from-right': 'slide-from-right-animation'
+          }
+        },
       },
 
+      attached: function () {
+        var month = moment(this.value, 'YYYY-MM-DD').format('YYYY-MM');
+        this._setMonth(0, month);
+        this._setMonth(1, month);
+        this._page = 0;
+      },
+
+      /**
+       * Gets an array of days to use for the weekday display above
+       * the dates (starting with Monday).
+       * @return {{ day:String, initial:String }[]}
+       */
       _getDays: function () {
         var arr = moment.weekdays().map(function (d) { return { day: d, initial: d[0] } });
-        arr.push(arr.shift());
+        arr.push(arr.shift()); // moves sunday from first day to last
         return arr;
+      },
+
+      /**
+       * Gets the specified calendar page.
+       * @param {Number} page Calendar page index (0 or 1)
+       * @return {Element} `eras-calendar-page`
+       */
+      _getPage: function (page) {
+        return this.$.pages.querySelector('[index="' + page + '"]');
+      },
+
+      /**
+       * Sets the month to be displayed for the specified page.
+       * @param {Number} page Calendar page index (0 or 1)
+       * @param {String} month The month to show `YYYY-MM`
+       */
+      _setMonth: function (page, month) {
+        this._getPage(page).setAttribute('month', month);
+      },
+
+      /**
+       * Computes `_previousDisabled`
+       * @param {Number} page `_page`
+       * @param {String} min `min`
+       */
+      _computePreviousDisabled: function (page, min) {
+        var previous = moment(this._getPage(page).month, 'YYYY-MM').subtract(1, 'month');
+        var min = moment(min, 'YYYY-MM-DD');
+        return previous.isBefore(min, 'month');
+      },
+
+      /**
+       * Computes `_nextDisabled`
+       * @param {Number} page `_page`
+       * @param {String} max `max`
+       */
+      _computeNextDisabled: function (page, max) {
+        var next = moment(this._getPage(page).month, 'YYYY-MM').add(1, 'month');
+        var max = moment(max, 'YYYY-MM-DD');
+        return next.isAfter(max, 'month');
+      },
+
+      /**
+       * Change the display to the specified month.
+       * @param {String} month `YYYY-MM`
+       */
+      _change: function (month) {
+        var target = moment(month, 'YYYY-MM');
+        var current = moment(this._getPage(this._page).month, 'YYYY-MM');
+
+        // target == current => don't do anything
+        if (target.isSame(current, 'month'))
+          return;
+
+        // target > max => go to max
+        if (target.isAfter(moment(this.max, 'YYYY-MM-DD'), 'month'))
+          return this._change(this.max);
+
+        // target < min> => go to min
+        if (target.isBefore(moment(this.min, 'YYYY-MM-DD'), 'month'))
+          return this._change(this.min);
+
+        if (target.isAfter(current, 'month')) {
+          this._exit = this._animations['to-left'];
+          this._entry = this._animations['from-right'];
+        } else {
+          this._exit = this._animations['to-right'];
+          this._entry = this._animations['from-left']
+        }
+
+        var otherPage = this._getPage(this._page == 0 ? 1 : 0);
+        otherPage.month = target.format('YYYY-MM');
+        this._page = otherPage.getAttribute('index');
+      },
+
+      /** Moves to the next page of the calendar. */
+      next: function () {
+        var current = moment(this._getPage(this._page).month, 'YYYY-MM');
+        var other = current.add(1, 'months');
+        this._change(other.format('YYYY-MM'));
+      },
+
+      /** Moves to the previous page of the calendar. */
+      previous: function () {
+        var current = moment(this._getPage(this._page).month, 'YYYY-MM');
+        var other = current.subtract(1, 'months');
+        this._change(other.format('YYYY-MM'));
+      },
+
+      _dateSelected: function(e) {
+        this.value = e.detail.date;
       }
     });
   </script>

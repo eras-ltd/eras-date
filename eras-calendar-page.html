@@ -106,7 +106,8 @@ Property|Description|Default
          */
         value: {
           type: String,
-          notify: true
+          notify: true,
+          // observer: '_valueChanged'
         },
 
         /** The earliest date allowed in 'YYYY-MM-DD' format.  */
@@ -174,10 +175,10 @@ Property|Description|Default
 
       /**
        * Computes `_dates`
-       * @param {String} min Minimum date `YYYY-MM-DD`
-       * @param {String} max Maximum date `YYYY-MM-DD`
-       * @param {String} month Month to display `YYYY-MM`
-       * @param {String} value Selected data `YYYY-MM-DD`
+       * @param {String} min `min`
+       * @param {String} max `max`
+       * @param {String} month `month`
+       * @param {String} value `value`
        * @return {{ date:Number, today:Boolean, selected:Boolean, enabled:Boolean }[]}
        */
       _computeDates: function (min, max, month, value) {
@@ -204,10 +205,24 @@ Property|Description|Default
         return dates;
       },
 
+      /**
+       * Fires the `date-selected` event when a date cell is tapped.
+       *
+       * *Would have preferred to rely on two way binding here but it
+       * doesn't seem to want to play nice with being bound to two
+       * pages at once.*
+       */
       _select: function (e) {
-        var date = Polymer.dom(e).localTarget.getAttribute('date');
-        this.value = this.month + '-' + date;
+        var newDate = this.month + '-' + Polymer.dom(e).localTarget.getAttribute('date');
+        this.value = newDate;
+        this.fire('date-selected', { date: newDate });        
       }
+
+      /**
+       * Fired when a date cell is tapped
+       * @event date-selected
+       * @param {{date:String}} detail `YYYY-MM-DD`
+       */
     });
   </script>
 </dom-module>
