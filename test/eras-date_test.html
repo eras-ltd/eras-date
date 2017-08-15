@@ -24,23 +24,12 @@
       <eras-calendar-page></eras-calendar-page>
     </template>
   </test-fixture>
-
-  <!-- <template id='page-template' is='dom-bind'>
-    <eras-calendar-page id='page-element' min='{{min}}' max='{{max}}' value='{{value}}' month='{{month}}'></eras-calendar-page>
-  </template> -->
-
   <script>
-    // var pageApp = document.querySelector('#page-template');
-
     suite('eras-calendar-page', function () {
       var el;
 
       setup(function () {
         el = fixture('page-fixture');
-        // el.min = moment().date(5).format('YYYY-MM-DD');
-        // el.max = moment().date(moment().daysInMonth() - 5).format('YYYY-MM-DD');
-        // el.month = moment().format('YYYY-MM');
-        // el.value = moment().date(15).format('YYYY-MM-DD');
       });
 
       suite('setup', function () {
@@ -54,6 +43,7 @@
             setup(function () {
               el.min = '2000-01-01';
               el.max = '2020-12-31';
+              el.value = null;
             });
 
             var dataTest = function (month, expected) {
@@ -64,13 +54,13 @@
                 // set month on the element
                 el.month = m.format('YYYY-MM');
 
-                var dates = el._getDates();
+                var dates = el._dates;
                 assert.equal(expected, dates.length, 'expected ' + m.format('MMM YYYY') + ' to have ' + expected + ' days, not ' + dates.length);
                 done();
               };
             };
 
-            var data = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; // 2000 is a leap year
+            var data = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; // 2000 was a leap year
 
             for (var i = 0; i < data.length; i++)
               test(moment({ month: i }).format('MMMM').toLowerCase(), dataTest(i + 1, data[i]));
@@ -83,7 +73,8 @@
               el.min = '2017-08-05';
               el.max = '2017-08-26';
               el.month = '2017-08';
-              dates = el._getDates();
+              el.value = null;
+              dates = el._dates;
             });
 
             var dataTest = function (date, expected) {
@@ -109,7 +100,7 @@
               el.max = '2017-08-25';
               el.month = '2017-08';
               el.value = '2017-08-14'; // selected date
-              dates = el._getDates();
+              dates = el._dates;
             });
 
             var dataTest = function (date, expected) {
@@ -126,6 +117,49 @@
               test(m.format('Do'), dataTest(i, expected));
             }
           });
+        });
+
+        suite('selection', function () {
+          setup(function () {
+            el.month = '2017-08';
+            el.min = '2017-08-05';
+            el.max = '2017-08-31';
+            el.value = null;
+          });
+
+          test('setup', function (done) {
+            flush(function () {
+              var cells = el.querySelectorAll('.cell:not(.blank)');
+              assert.equal(31, cells.length, 'expected there to be 31 date cells, not ' + cells.length);
+              done();
+            });
+          });
+
+          var dataTest = function (date, expected) {
+            return function (done) {
+              flush(function () {
+                var cell = el.querySelectorAll('.cell:not(.blank)')[date - 1];                
+                MockInteractions.tap(cell);
+
+                flush(function () {
+                  // the min date is the 5th so 1st-4th should be disabled
+                  if (date < 5) {
+                    assert(cell.hasAttribute('disabled'), 'expected dates before the 5th to be disabled');
+                    assert.equal(null, el.value, 'did not expect the date to change from null as should be disabled');
+                  } else {
+                    assert.equal(date, cell.getAttribute('date'), 'expected the `date` attribute to equal ' + date);
+                    assert.equal('2017-08-' + date, el.value, 'expected `value` to have changed to 2017-08-' + date + ' not ' + el.value);
+                  }
+
+                  done();
+                });                
+              });
+            };
+          };
+
+          for (var i = 1; i <= 31; i++)
+            test(moment(i,'D').format('Do'), dataTest(i, '2017-08-' + i));
+
         });
       });
     });

@@ -7,7 +7,7 @@
 ### Styling
 Property|Description|Default
 --------|-----------|-------
-`--date-width`|Width of the element|`250px`
+`--date-page-width`|Width of the element|`250px`
 
 @demo demo/calendar.html
 -->
@@ -16,14 +16,36 @@ Property|Description|Default
     <style include='iron-flex iron-flex-alignment'>
        :host {
         display: block;
-        --element-width: var(--date-width, 250px);
-        --cell-width: calc(var(--element-width)/7);
+        --element-width: var(--date-page-width, 250px);
+        --cell-size: calc(var(--element-width)/7);
+        --date-weekdays-height: var(--cell-size);
+        --date-month-height: 40px;
+        width: var(--element-width);
+        background-color: yellow;
+      }
+
+      #nav {
+        height: var(--date-month-height);
+      }
+
+      #days {
+        height: var(--date-weekdays-height);
       }
 
       .cell {
-        width: var(--cell-width);
+        width: var(--cell-size);
+        height: var(--cell-size);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+        background-color: lightseagreen;
       }
     </style>
+
+    <div id="nav">
+
+    </div>
 
     <div id="days" class="layout horizontal center">
       <template is="dom-repeat" items="{{_getDays()}}">
@@ -43,9 +65,17 @@ Property|Description|Default
          */
         value: {
           type: String,
-          value: function () { moment().format('YYYY-MM-DD'); },
           notify: true
         },
+
+        /** The earliest date allowed in 'YYYY-MM-DD' format.  */
+        min: String,
+
+        /** The latest date allowed in 'YYYY-MM-DD' format. */
+        max: String,
+
+        /** The month that will be displayed in the 'YYYY-MM' format. */
+        month: String,
       },
 
       _getDays: function () {

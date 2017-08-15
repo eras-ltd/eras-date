@@ -1,5 +1,6 @@
 <link rel='import' href='../polymer/polymer.html'>
 <link rel='import' href='../iron-flex-layout/iron-flex-layout-classes.html'>
+<link rel='import' href='../paper-ripple/paper-ripple.html'>
 <link rel='import' href='../eras-external/moment.html'>
 <!--
 `eras-calendar-page`
@@ -7,7 +8,10 @@
 ### Styling
 Property|Description|Default
 --------|-----------|-------
-`--date-width`|Width of the element|`250px`
+`--theme-colour`|Colour of the selected date's cell|`--primary-color`
+`--date-page-width`|Width of the element|`250px`
+`--date-month-height`|Height of the 'month year' display at the top of each page|`40px`
+`--date-weekdays-height`|Height of the weekday display, used to create a gap between 'month year' display and weekdays|`0px`
 
 @demo demo/calendar-page.html
 -->
@@ -16,20 +20,79 @@ Property|Description|Default
     <style include='iron-flex iron-flex-alignment'>
        :host {
         display: block;
-        --element-width: var(--date-width, 250px);
-        --cell-width: calc(var(--element-width)/7);
+        --element-width: var(--date-page-width, 250px);
+        --cell-margin: 2px;
+        --cell-size: calc(var(--element-width) / 7 - var(--cell-margin) * 2);
+        width: var(--element-width);
+      }
+
+      #month {
+        height: var(--date-month-height, 40px);
+        margin-bottom: var(--date-weekdays-height, 0);
+        font-weight: bold;
       }
 
       .cell {
-        width: var(--cell-width);
+        margin: var(--cell-margin);
+        width: var(--cell-size);
+        height: var(--cell-size);
+        border-radius: calc(var(--cell-size)/2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+        cursor: pointer;
+        position: relative;
+        transition: all 300ms linear;
+      }
+
+      .cell:not(.blank):not([selected]):not([disabled]):hover {
+        background-color: var(--paper-grey-200);
+      }
+
+      .cell[today] {
+        background-color: var(--paper-grey-300);
+      }
+
+      .cell[selected] {
+        background-color: var(--theme-colour, --primary-color);
+        color: white;
+      }
+
+      .cell[disabled],
+      .cell.blank {
+        color: var(--paper-grey-500);
+        cursor: default;
       }
     </style>
 
-    <div id="days" class="layout horizontal center">
-      <template is="dom-repeat" items="{{_getDays()}}">
-        <div class="cell">
-          {{item.initial}}
-        </div>
+    <div id='month' class='layout horizontal center'>
+      <div class='flex'></div>
+      <div>{{_monthDisplay}}</div>
+      <div class='flex'></div>
+    </div>
+
+    <div id='dates' class='layout horizontal center wrap'>
+
+      <template is='dom-repeat' items='{{_blanks}}' as='blank'>
+        <div class='cell blank'></div>
+      </template>
+
+      <template is='dom-repeat' items='{{_dates}}' as='date'>
+
+        <template is='dom-if' if='{{date.enabled}}'>
+          <div class='cell' today$='{{date.today}}' selected$='{{date.selected}}' date$='{{date.date}}' on-tap='_select'>
+            {{date.date}}
+            <paper-ripple></paper-ripple>
+          </div>
+        </template>
+
+        <template is='dom-if' if='{{!date.enabled}}'>
+          <div class='cell' today$='{{date.today}}' selected$='{{date.selected}}' disabled>
+            {{date.date}}
+          </div>
+        </template>
+
       </template>
     </div>
 
@@ -43,63 +106,93 @@ Property|Description|Default
          */
         value: {
           type: String,
-          value: function () { moment().format('YYYY-MM-DD'); },
           notify: true
         },
 
-        /**
-         * The earliest date allowed in 'YYYY-MM-DD' format. 
-         * Defaults to 100 years ago.
-         */
-        min: {
+        /** The earliest date allowed in 'YYYY-MM-DD' format.  */
+        min: String,
+
+        /** The latest date allowed in 'YYYY-MM-DD' format. */
+        max: String,
+
+        /** The month that will be displayed in the 'YYYY-MM' format. */
+        month: String,
+
+        /** Month and year to be displayed at top of page (eg. 'August 2017'). */
+        _monthDisplay: {
           type: String,
-          value: function () { moment().subtract(100, 'years').format('YYYY-MM-DD'); }
+          computed: '_computeMonthDisplay(month)'
         },
 
         /**
-         * The latest date allowed in 'YYYY-MM-DD' format.
-         * Defaults to 5 years in the future.
+         * Array of dates to be displayed.
+         * @type {{ date:Number, today:Boolean, selected:Boolean, enabled:Boolean }[]}
          */
-        max: {
-          type: String,
-          value: function () { moment().add(5, 'years').format('YYYY-MM-DD'); }
+        _dates: {
+          type: Array,
+          computed: '_computeDates(min,max,month,value)'
         },
 
         /**
-         * The month that will be displayed in the 'YYYY-MM' format.
+         * Array representing the blank cells used to correctly
+         * offset the dates relative to the days of the week.
+         * @type {Number[]}
          */
-        month: {
-          type: String,
-          value: function () { moment().format('YYYY-MM'); }
+        _blanks: {
+          type: Array,
+          computed: '_computeBlanks(month)'
         }
       },
 
-      _getDays: function () {
-        var arr = moment.weekdays().map(function (d) { return { day: d, initial: d[0] } });
-        arr.push(arr.shift());
-        return arr;
+      /**
+       * Computes `_monthDisplay`
+       * @param {String} month The month that is being displayed `YYYY-MM`.
+       * @return {String} 'MMMM YYYY' / 'August 2017'
+       */
+      _computeMonthDisplay: function (month) {
+        return moment(month, 'YYYY-MM').format('MMMM YYYY');
       },
 
       /**
-       * Gets an array of objects used to display the dates
-       * in the specified month.
+       * Computes `_blanks`
+       * @param {String} month Month to display `YYYY-MM`
+       * @return {Number[]} Just an array to iterate through with `dom-repeat`
+       */
+      _computeBlanks: function (month) {
+        if (!month)
+          return;
+
+        var start = moment(month, 'YYYY-MM').startOf('month').day();
+        var count = start == 0 ? 6 : start - 1
+        var blanks = [];
+
+        for (var i = 0; i < count; i++)
+          blanks.push(i);
+
+        return blanks;
+      },
+
+      /**
+       * Computes `_dates`
+       * @param {String} min Minimum date `YYYY-MM-DD`
+       * @param {String} max Maximum date `YYYY-MM-DD`
+       * @param {String} month Month to display `YYYY-MM`
+       * @param {String} value Selected data `YYYY-MM-DD`
        * @return {{ date:Number, today:Boolean, selected:Boolean, enabled:Boolean }[]}
        */
-      _getDates: function () {
-        // console.info(this.min, this.max, this.month);
-        
-        if (!this.min || !this.max || !this.month)
+      _computeDates: function (min, max, month, value) {
+        if (!min || !max || !month)
           return;
-      
-        var selected = moment(this.value, 'YYYY-MM-DD');
-        var month = moment(this.month, 'YYYY-MM');
-        var min = moment(this.min, 'YYYY-MM-DD');
-        var max = moment(this.max, 'YYYY-MM-DD');
+
+        var selected = moment(value, 'YYYY-MM-DD');
+        var month = moment(month, 'YYYY-MM');
+        var min = moment(min, 'YYYY-MM-DD');
+        var max = moment(max, 'YYYY-MM-DD');
         var dates = [];
 
         for (var i = 1; i <= month.daysInMonth(); i++) {
-          var date = moment({ year:month.year(), month:month.month(), date:i });
-          
+          var date = moment({ year: month.year(), month: month.month(), date: i });
+
           dates.push({
             date: i,
             today: moment().isSame(date, 'date'),
@@ -109,6 +202,11 @@ Property|Description|Default
         }
 
         return dates;
+      },
+
+      _select: function (e) {
+        var date = Polymer.dom(e).localTarget.getAttribute('date');
+        this.value = this.month + '-' + date;
       }
     });
   </script>
