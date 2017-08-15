@@ -69,9 +69,9 @@ Property|Description|Default
 
     <div id='static'>
       <div id='nav' class='layout horizontal center'>
-        <paper-icon-button icon='chevron-left' disabled$='{{_previousDisabled}}' on-tap='previous'></paper-icon-button>
+        <paper-icon-button id='previous' icon='chevron-left' disabled$='{{_previousDisabled}}' on-tap='previous'></paper-icon-button>
         <div class='flex'></div>
-        <paper-icon-button icon='chevron-right' disabled$='{{_nextDisabled}}' on-tap='next'></paper-icon-button>
+        <paper-icon-button id='next' icon='chevron-right' disabled$='{{_nextDisabled}}' on-tap='next'></paper-icon-button>
       </div>
 
       <div id='days' class='layout horizontal center'>
@@ -138,13 +138,26 @@ Property|Description|Default
             'from-right': 'slide-from-right-animation'
           }
         },
+
+        _initialised: {
+          type: Boolean,
+          value: false
+        }
       },
 
-      attached: function () {
+      observers: [
+        '_initialise(value, _initialised)'
+      ],
+
+      _initialise: function (value, _initialised) {
+        if (_initialised)
+          return;
+
         var month = moment(this.value, 'YYYY-MM-DD').format('YYYY-MM');
         this._setMonth(0, month);
         this._setMonth(1, month);
         this._page = 0;
+        this._initialised = true;
       },
 
       /**
@@ -245,7 +258,13 @@ Property|Description|Default
         this._change(other.format('YYYY-MM'));
       },
 
-      _dateSelected: function(e) {
+      /**
+       * Called on `date-selected` events fired by the 
+       * `eras-calendar-page` elements. Pulls the new
+       * date from the `detail` object and updates `value`.
+       * @param {Event} e 
+       */
+      _dateSelected: function (e) {
         this.value = e.detail.date;
       }
     });
