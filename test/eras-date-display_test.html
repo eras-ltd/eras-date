@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes'>
+
+  <title>eras-date-display test</title>
+
+  <script src='../../webcomponentsjs/webcomponents-lite.js'></script>
+  <script src='../../web-component-tester/browser.js'></script>
+
+  <script src='../bower_components/iron-test-helpers/mock-interactions.js'></script>
+  <link rel='import' href='../eras-date-display.html'>
+</head>
+
+<body>
+  <test-fixture id='eras-date-display-fixture'>
+    <template>
+      <eras-date-display></eras-date-display>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('eras-date-display', function () {
+      var el;
+      var spy;
+
+      setup(function () {
+        el = fixture('eras-date-display-fixture');
+        spy = sinon.spy(el, 'fire');
+      });
+
+      teardown(function(){
+        el.fire.restore();
+      });
+      
+      test('instantiation', function () {
+        assert.equal(el.is, 'eras-date-display');
+      });
+
+      test('date', function(done){
+        el.value = '2017-08-16';
+        var actual = el._date;
+        var expected = { year: 2017, month: 'Aug', date: '16th', day: 'Wed' };
+        assert.deepEqual(expected, actual, 'expected the `_date` to be ' + JSON.stringify(expected) + ' not ' + JSON.stringify(el._date));
+        done();
+      });
+
+      test('event', function(done){        
+        MockInteractions.tap(el.$.year);        
+        assert(spy.withArgs('year-tapped').calledOnce, 'expected `year-tapped` event to have fired once');
+        done();
+      });
+    });
+
+  </script>
+</body>
+
+</html>

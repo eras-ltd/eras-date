@@ -1,0 +1,102 @@
+<link rel='import' href='../polymer/polymer.html'>
+<link rel='import' href='../paper-ripple/paper-ripple.html'>
+<link rel='import' href='../eras-external/moment.html'>
+<!--
+`eras-date-display`
+
+Property|Description|Default
+--------|-----------|-------
+`--theme-colour`|Colour of the header and selected date's cell|`--primary-color`
+`--theme-light-colour`|Alternate text colour|`--light-primary-color`
+`--eras-calendar-padding`|Padding all round the element|`10px`
+
+@demo demo/eras-date-display_demo.html
+-->
+<dom-module id='eras-date-display'>
+  <template>
+    <style>
+       :host {
+        display: block;
+        background-color: var(--theme-colour, --primary-color);
+        padding: var(--eras-calendar-padding, 10px);
+      }
+
+       :host[focus-years] #date {
+        color: var(--theme-light-colour, --light-primary-color);
+      }
+
+       :host[focus-years] #year {
+        color: white;
+      }
+
+      #date {
+        color: white;
+        font-size: 22px;
+        font-weight: bold;
+        padding: 0 5px;
+      }
+
+      #year {
+        color: var(--theme-light-colour, --light-primary-color);
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-block;
+        padding: 3px 5px;
+        position: relative;
+      }
+    </style>
+
+    <div id='year' on-tap='_yearTapped'>
+      {{_date.year}}
+      <paper-ripple></paper-ripple>
+    </div>
+    <div id='date'>{{_date.day}}, {{_date.date}} {{_date.month}}</div>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'eras-date-display',
+      properties: {
+        /**
+         * The currently selected date in the 'YYYY-MM-DD' format.
+         */
+        value: {
+          type: String,
+          notify: true
+        },
+
+        /**
+         * Object containing info used to displaye the currently
+         * selected date from `value`
+         * @type {{ year:Number, month:String, date:String, day:String }}
+         */
+        _date: {
+          type: Object,
+          computed: '_computeDate(value)'
+        }
+      },
+
+      /**
+       * Computes `_date`
+       * @param {String} value
+       * @returns {{ year:Number, month:String, date:String, day:String }}
+       */
+      _computeDate: function (value) {
+        var m = moment(value, 'YYYY-MM-DD');
+        return { year: m.year(), month: m.format('MMM'), date: m.format('Do'), day: m.format('ddd') };
+      },
+
+      /**
+       * Fires the `year-tapped` event when the year is tapped.
+       */
+      _yearTapped: function() {
+        this.fire('year-tapped');
+      }
+
+      /**
+       * Fired when the year is tapped. Used to open up the year selector.
+       * @event year-tapped
+       */
+    });
+  </script>
+</dom-module>

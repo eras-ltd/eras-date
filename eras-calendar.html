@@ -19,7 +19,7 @@ Property|Description|Default
 `--eras-calendar-width`|Width of the element|`250px`
 `--eras-calendar-cell-size`|Height and width of the date cells|`35px`
 
-@demo demo/calendar.html
+@demo demo/eras-calendar_demo.html
 -->
 <dom-module id='eras-calendar'>
   <template>
@@ -40,8 +40,7 @@ Property|Description|Default
         position: absolute;
         top: 0;
         left: 0;
-        width: 100%;
-        padding: 0 var(--eras-calendar-padding, 10px);
+        width: 100%;        
         z-index: 2;
       }
 
@@ -52,6 +51,7 @@ Property|Description|Default
       #days {
         height: var(--eras-calendar-weekdays-height, 35px);
         color: var(--paper-grey-700);
+        padding: 0 var(--eras-calendar-padding, 10px);
       }
 
       #pages {

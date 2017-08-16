@@ -4,7 +4,9 @@
 <link rel='import' href='../neon-animation/animations/slide-right-animation.html'>
 <link rel='import' href='../neon-animation/animations/slide-from-left-animation.html'>
 <link rel='import' href='../neon-animation/animations/slide-from-right-animation.html'>
+<link rel='import' href='../paper-ripple/paper-ripple.html'>
 <link rel='import' href='../eras-date/eras-calendar.html'>
+<link rel='import' href='../eras-date/eras-date-display.html'>
 
 <!--
 `eras-date`
@@ -13,6 +15,8 @@
 
 Property|Description|Default
 --------|-----------|-------
+`--theme-colour`|Colour of the header and selected date's cell|`--primary-color`
+`--theme-light-colour`|Alternate text colour|`--light-primary-color`
 `--eras-date-width`|Width of the element|`270px`
 `--eras-calendar-padding`|Padding on either side of the calendar pages|`10px`
 
@@ -26,19 +30,23 @@ Property|Description|Default
         display: block;
 
         /* public */
-        --eras-date-width: 270px; 
+        --eras-date-width: 270px;
 
         /* for children */
         --eras-calendar-width: calc(var(--eras-date-width) - var(--eras-calendar-padding, 10px) * 2);
-        --eras-calendar-cell-size: calc(var(--eras-calendar-width) / 7);               
+        --eras-calendar-cell-size: calc(var(--eras-calendar-width) / 7);
         --eras-calendar-cell-margin: 2px;
 
         width: var(--eras-date-width);
-      }
+      }      
     </style>
+
+    <eras-date-display value='{{value}}'></eras-date-display>
+
     <neon-animated-pages id='pages' selected='{{_page}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
       <eras-calendar id='calendar' value='{{value}}' min='{{min}}' max='{{max}}'></eras-calendar>
     </neon-animated-pages>
+
   </template>
 
   <script>
@@ -63,8 +71,8 @@ Property|Description|Default
         _page: {
           type: Number,
           value: 0
-        },
-      },
+        }        
+      }
     });
   </script>
 </dom-module>
