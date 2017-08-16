@@ -4,7 +4,9 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^1.9.0",
     "eras-external": "eras-ltd/eras-external#^0.0.1",
-    "neon-animation": "1"
+    "neon-animation": "1",
+    "paper-listbox": "1",
+    "paper-item": "1"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

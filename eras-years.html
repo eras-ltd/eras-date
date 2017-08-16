@@ -1,22 +1,101 @@
 <link rel='import' href='../polymer/polymer.html'>
+<link rel='import' href='../iron-flex-layout/iron-flex-layout-classes.html'>
+<link rel='import' href='../paper-listbox/paper-listbox.html'>
+<link rel='import' href='../paper-item/paper-item.html'>
+<link rel='import' href='../eras-external/moment.html'>
 <!--
 `eras-years`
-@demo demo/index.html
+
+### Styling
+
+Property|Description|Default
+--------|-----------|-------
+`--theme-colour`|Colour of the selected date's cell|`--primary-color`
+`--eras-calendar-width`|Width of the element|`250px`
+
+@demo demo/eras-years_demo.html
 -->
 <dom-module id='eras-years'>
   <template>
-    <style>
-      :host {
+    <style include='iron-flex iron-flex-alignment'>
+       :host {
         display: block;
+        width: var(--eras-calendar-width, 250px);
+        --paper-item-min-height: 40px;
+        --paper-item-selected: {
+          color: var(--theme-colour, --primary-color);
+          font-size: 22px;
+        }
+      }
+
+      paper-item {
+        cursor: pointer;
+        transition: all 100ms linear;
       }
     </style>
-    
+    <paper-listbox id='list' selected='{{_current}}' attr-for-selected='year'>
+      <template is='dom-repeat' items='{{_years}}' as='year'>
+        <paper-item class='layout horizontal center' year='{{year}}'>
+          <div class='flex'></div>
+          <div>{{year}}</div>
+          <div class='flex'></div>
+        </paper-item>
+      </template>
+    </paper-listbox>
   </template>
   <script>
     Polymer({
       is: 'eras-years',
       properties: {
+        /** The currently selected date in the 'YYYY-MM-DD' format. */
+        value: String,
 
+        /** The earliest date allowed in 'YYYY-MM-DD' format.  */
+        min: String,
+
+        /** The latest date allowed in 'YYYY-MM-DD' format. */
+        max: String,
+
+        /** The currently selected year computed from `value`. */
+        _current: {
+          type: Number,
+          computed: '_computeCurrent(value)'
+        },
+
+        /** 
+         * Array of years from min to max inclusive.
+         * @type {Number[]}
+         */
+        _years: {
+          type: Array,
+          computed: '_computeYears(value, min, max)'
+        },
+      },
+      /**
+       * Computes `_current`
+       * @param {String} value YYYY-MM-DD
+       * @return {Number} YYYY
+       */
+      _computeCurrent: function (value) {
+        return moment(value, 'YYYY-MM-DD').year();
+      },
+
+      /**
+       * Computes `_years`
+       * @param {String} value YYYY-MM-DD
+       * @param {String} min YYYY-MM-DD
+       * @param {String} max YYYY-MM-DD
+       * @return {Number[]} YYYY
+       */
+      _computeYears: function (value, min, max) {
+        var min = moment(min, 'YYYY-MM-DD').year();
+        var max = moment(max, 'YYYY-MM-DD').year();
+        var arr = [];
+
+        for (var i = max; i >= min; i--)
+          arr.push(i);
+
+        return arr;
       }
     });
   </script>
