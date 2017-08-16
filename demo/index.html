@@ -1,28 +1,34 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+<html lang='en'>
 
-    <title>eras-date demo</title>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes'>
 
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <title>eras-date demo</title>
 
-    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
-    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-    <link rel="import" href="../eras-date.html">
+  <script src='../../webcomponentsjs/webcomponents-lite.js'></script>
 
-    <style is="custom-style" include="demo-pages-shared-styles">
-    </style>
-  </head>
-  <body>
-    <div class="vertical-section-container centered">
-      <h3>Basic eras-date demo</h3>
-      <demo-snippet>
-        <template>
-          <eras-date></eras-date>
-        </template>
-      </demo-snippet>
-    </div>
-  </body>
+  <link rel='import' href='../../iron-demo-helpers/demo-pages-shared-styles.html'>
+  <link rel='import' href='../../iron-demo-helpers/demo-snippet.html'>
+  <link rel='import' href='../eras-date.html'>
+
+  <style is='custom-style' include='demo-pages-shared-styles'>
+    eras-date {
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class='vertical-section-container centered'>
+    <h3>Basic eras-date demo</h3>
+    <demo-snippet>
+      <template>
+        <eras-date value='2017-08-15' min='2017-07-15' max='2017-09-15'></eras-date>
+      </template>
+    </demo-snippet>
+  </div>
+</body>
+
 </html>

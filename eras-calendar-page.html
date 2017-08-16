@@ -9,9 +9,10 @@
 Property|Description|Default
 --------|-----------|-------
 `--theme-colour`|Colour of the selected date's cell|`--primary-color`
-`--date-page-width`|Width of the element|`250px`
-`--date-month-height`|Height of the 'month year' display at the top of each page|`40px`
-`--date-weekdays-height`|Height of the weekday display, used to create a gap between 'month year' display and weekdays|`0px`
+`--eras-calendar-width`|Width of the element|`250px`
+`--eras-calendar-weekdays-height`|Height to be left for weekdays|`0px`
+`--eras-calendar-cell-size`|Height and width of the date cells|`35px`
+`--eras-calendar-cell-margin`|Gap between cells|`2px`
 
 @demo demo/calendar-page.html
 -->
@@ -19,24 +20,22 @@ Property|Description|Default
   <template>
     <style include='iron-flex iron-flex-alignment'>
        :host {
-        display: block;
-        --element-width: var(--date-page-width, 250px);
-        --cell-margin: 2px;
-        --cell-size: calc(var(--element-width) / 7 - var(--cell-margin) * 2);
-        width: var(--element-width);
+        display: block;        
+        width: var(--eras-calendar-width, 250px);        
       }
 
       #month {
-        height: var(--date-month-height, 40px);
-        margin-bottom: var(--date-weekdays-height, 0);
+        height: var(--eras-calendar-cell-size, 35px);
+        margin-bottom: var(--eras-calendar-weekdays-height, 0px);
         font-weight: bold;
       }
 
       .cell {
-        margin: var(--cell-margin);
-        width: var(--cell-size);
-        height: var(--cell-size);
-        border-radius: calc(var(--cell-size)/2);
+        margin: var(--eras-calendar-cell-margin, 2px);
+        width: calc(var(--eras-calendar-cell-size, 35px) - var(--eras-calendar-cell-margin, 2px) * 2);
+        height: calc(var(--eras-calendar-cell-size, 35px) - var(--eras-calendar-cell-margin, 2px) * 2);
+        border-radius: 100px; /* IE11 doesn't play nice with parentheses in calc() */
+        border-radius: calc((var(--eras-calendar-cell-size, 35px) - var(--eras-calendar-cell-margin, 2px) * 2) / 2);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -215,7 +214,7 @@ Property|Description|Default
       _select: function (e) {
         var newDate = this.month + '-' + Polymer.dom(e).localTarget.getAttribute('date');
         this.value = newDate;
-        this.fire('date-selected', { date: newDate });        
+        this.fire('date-selected', { date: newDate });
       }
 
       /**

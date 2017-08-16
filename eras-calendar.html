@@ -13,9 +13,11 @@
 `eras-calendar`
 
 ### Styling
+
 Property|Description|Default
 --------|-----------|-------
-`--date-page-width`|Width of the element|`250px`
+`--eras-calendar-width`|Width of the element|`250px`
+`--eras-calendar-cell-size`|Height and width of the date cells|`35px`
 
 @demo demo/calendar.html
 -->
@@ -24,11 +26,12 @@ Property|Description|Default
     <style include='iron-flex iron-flex-alignment'>
        :host {
         display: block;
-        --element-width: var(--date-page-width, 250px);
-        --cell-size: calc(var(--element-width)/7);
-        --date-weekdays-height: var(--cell-size);
-        --date-month-height: 40px;
-        width: var(--element-width);
+
+        --eras-calendar-weekdays-height: var(--eras-calendar-cell-size, 35px); 
+        --eras-calendar-height: calc(var(--eras-calendar-cell-size, 35px) * 8);       
+        width: var(--eras-calendar-width, 250px);
+        height: var(--eras-calendar-height);
+        padding: 0 var(--eras-calendar-padding, 10px);
         position: relative;
         /* background-color: yellow; */
       }
@@ -38,27 +41,28 @@ Property|Description|Default
         top: 0;
         left: 0;
         width: 100%;
+        padding: 0 var(--eras-calendar-padding, 10px);
         z-index: 2;
       }
 
       #nav {
-        height: var(--date-month-height);
+        height: var(--eras-calendar-cell-size, 35px);
       }
 
       #days {
-        height: var(--date-weekdays-height);
+        height: var(--eras-calendar-weekdays-height, 35px);
         color: var(--paper-grey-700);
       }
 
       #pages {
-        height: calc(var(--cell-size) * 6 + var(--date-weekdays-height) + var(--date-month-height));
+        height: var(--eras-calendar-height);
         z-index: 1;
         overflow: hidden;
       }
 
       .cell {
-        width: var(--cell-size);
-        height: var(--cell-size);
+        width: var(--eras-calendar-cell-size, 35px);
+        height: var(--eras-calendar-cell-size, 35px);
         display: flex;
         justify-content: center;
         align-items: center;

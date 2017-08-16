@@ -1,34 +1,74 @@
-<link rel="import" href="../polymer/polymer.html">
+<link rel='import' href='../polymer/polymer.html'>
+<link rel='import' href='../neon-animation/neon-animated-pages.html'>
+<link rel='import' href='../neon-animation/animations/slide-left-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-right-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-from-left-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-from-right-animation.html'>
+<link rel='import' href='../eras-date/eras-calendar.html'>
 
 <!--
 `eras-date`
 
+### Styling
+
+Property|Description|Default
+--------|-----------|-------
+`--eras-date-width`|Width of the element|`270px`
+`--eras-calendar-padding`|Padding on either side of the calendar pages|`10px`
 
 @demo demo/index.html
 -->
 
-<dom-module id="eras-date">
+<dom-module id='eras-date'>
   <template>
     <style>
-      :host {
+       :host {
         display: block;
+
+        /* public */
+        --eras-date-width: 270px; 
+
+        /* for children */
+        --eras-calendar-width: calc(var(--eras-date-width) - var(--eras-calendar-padding, 10px) * 2);
+        --eras-calendar-cell-size: calc(var(--eras-calendar-width) / 7);               
+        --eras-calendar-cell-margin: 2px;
+
+        width: var(--eras-date-width);
+      }
+
+      #calendar {
+        height: var(--eras-calendar-height);
       }
     </style>
-    <h2>Hello [[prop1]]!</h2>
+    <neon-animated-pages id='pages' selected='{{_page}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
+      <eras-calendar id='calendar' value='{{value}}' min='{{min}}' max='{{max}}'></eras-calendar>
+    </neon-animated-pages>
   </template>
 
   <script>
     Polymer({
-
       is: 'eras-date',
-
       properties: {
-        prop1: {
+        /**
+         * The currently selected date in the 'YYYY-MM-DD' format.
+         */
+        value: {
           type: String,
-          value: 'eras-date',
+          notify: true
+        },
+
+        /** The earliest date allowed in 'YYYY-MM-DD' format.  */
+        min: String,
+
+        /** The latest date allowed in 'YYYY-MM-DD' format. */
+        max: String,
+
+        /** The index of the calendar page to show (0 or 1) */
+        _page: {
+          type: Number,
+          value: 0
         },
       },
-
     });
   </script>
 </dom-module>
