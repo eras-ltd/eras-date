@@ -5,8 +5,10 @@
 <link rel='import' href='../neon-animation/animations/slide-from-left-animation.html'>
 <link rel='import' href='../neon-animation/animations/slide-from-right-animation.html'>
 <link rel='import' href='../paper-ripple/paper-ripple.html'>
+<link rel='import' href='../eras-external/moment.html'>
 <link rel='import' href='../eras-date/eras-calendar.html'>
 <link rel='import' href='../eras-date/eras-date-display.html'>
+<link rel='import' href='../eras-date/eras-years.html'>
 
 <!--
 `eras-date`
@@ -28,6 +30,7 @@ Property|Description|Default
     <style>
        :host {
         display: block;
+        overflow: hidden;
 
         /* public */
         --eras-date-width: 270px;
@@ -41,12 +44,17 @@ Property|Description|Default
 
         width: var(--eras-date-width);
       }      
+
+      #pages {
+        height: var(--eras-calendar-height);
+      }
     </style>
 
-    <eras-date-display value='{{value}}'></eras-date-display>
+    <eras-date-display id='display' value='{{value}}' on-year-tapped='_showYears'></eras-date-display>
 
     <neon-animated-pages id='pages' selected='{{_page}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
       <eras-calendar id='calendar' value='{{value}}' min='{{min}}' max='{{max}}'></eras-calendar>
+      <eras-years id='years' value='{{value}}' min='{{min}}' max='{{max}}' on-year-selected='_changeYear'></eras-years>
     </neon-animated-pages>
 
   </template>
@@ -71,7 +79,60 @@ Property|Description|Default
         _page: {
           type: Number,
           value: 0
-        }        
+        },
+
+        /** The animation to use for the incoming `neon-animated-pages` page */
+        _entry: {
+          type: String,
+          value: ""
+        },
+        /** The animation to use for the outgoing `neon-animated-pages` page */
+        _exit: {
+          type: String,
+          value: ""
+        },
+
+        /**
+         * An associative array of animations to use when transitioning between pages.
+         * @type {String[]}
+         */
+        _animations: {
+          type: Array,
+          readOnly: true,
+          value: {
+            'to-left': 'slide-left-animation',
+            'to-right': 'slide-right-animation',
+            'from-left': 'slide-from-left-animation',
+            'from-right': 'slide-from-right-animation'
+          }
+        }   
+      },
+
+      /**
+       * Slide the year picker into view and call
+       * `eras-years.update()` to scroll the selected
+       * year into view.
+       */
+      _showYears: function() {
+        this.$.display.setAttribute('focus-years','');
+        this._entry = this._animations['from-left'];
+        this._exit = this._animations['to-right'];
+        this._page = 1;
+        this.$.years.update();
+      },
+
+      _changeYear: function(e) {
+        this.$.display.removeAttribute('focus-years');
+        this._entry = this._animations['from-right'];
+        this._exit = this._animations['to-left'];
+        this._page = 0;
+
+        var year = e.detail.year;
+        if(!year)
+          return;
+
+        var month = moment(this.$.calendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
+        this.$.calendar.change(month);      
       }
     });
   </script>
