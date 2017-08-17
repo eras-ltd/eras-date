@@ -28,11 +28,90 @@
       setup(function () {
         el = fixture('eras-years-fixture');
       });
-      test('instantiation', function () {
+
+      test('instantiation', function (done) {
         assert.equal(el.is, 'eras-years');
+        done();
+      });
+
+      suite('years', function () {
+        setup(function () {
+          el.min = '2000-05-01';
+          el.max = '2020-06-30';
+          el.value = '2010-08-17';
+        });
+
+        test('count', function (done) {
+          assert.equal(21, el._years.length, 'expected the `_years` array to contain 21 years: 2000-2020');
+          done();
+        });
+
+        test('min', function (done) {
+          assert.equal(2000, Math.min.apply(null, el._years), 'expected the first year to be 2000');
+          done();
+        });
+
+        test('max', function (done) {
+          assert.equal(2020, Math.max.apply(null, el._years), 'expected the first year to be 2020');
+          done();
+        });
+      });
+
+      suite('selection', function () {
+        var spy;
+
+        setup(function () {
+          spy = sinon.spy(el, 'fire');
+          el.min = '2000-05-01';
+          el.max = '2020-06-30';
+          el.value = '2010-08-17';
+        });
+
+        teardown(function () {
+          el.fire.restore();
+        });
+
+        test('pre-selection', function (done) {
+          flush(function () {
+            assert(el.$.list.selectedItem, 'expected an item to be selected');
+            assert.equal(2010, el.$.list.selected, 'expected `paper-listbox.selected` to be 2010');
+            done();
+          });
+        });
+
+        test('new selection', function (done) {
+          flush(function () {
+            var item = el.$.list.items[0];
+            MockInteractions.tap(item);
+            assert(el.$.list.selectedItem, 'expected an item to be selected');
+            assert.equal(2020, el.$.list.selected, 'expected `paper-listbox.selected` to be 2020');
+            assert(spy.withArgs('year-selected').calledOnce);
+            done();
+          });
+        });
+
+        test('previous selection', function (done) {
+          flush(function () {
+            // for some reason sinon's spy is not picking up this event being fired
+            // i know it is being fired properly as i can test it by adding an event 
+            // listener as below
+            var fired = 0;
+            var year;
+            el.addEventListener('year-selected', function(e){ fired++; year = e.detail.year; });
+
+            var item = el.$.list.selectedItem;
+            MockInteractions.tap(item);
+
+            assert(el.$.list.selectedItem, 'expected an item to be selected');
+            assert.equal(2010, el.$.list.selected, 'expected `paper-listbox.selected` to be 2010');
+            assert.equal(1, fired, 'expected `year-selected` to have been fired once');
+            assert(year === undefined, 'expected `year` to be undefined');
+            done();
+          });
+        });
+
       });
     });
-
   </script>
 </body>
 

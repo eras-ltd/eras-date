@@ -80,7 +80,7 @@ Property|Description|Default
           type: Array,
           computed: '_computeYears(value, min, max)'
         },
-      },      
+      },
 
       /**
        * Computes `_years`
@@ -104,8 +104,8 @@ Property|Description|Default
        * Scrolls the selected item into view if there is one.       
        */
       update: function () {
-        if (this.$.list.selectedItem) 
-          this.scrollTop = this.$.list.selectedItem.offsetTop - this.offsetHeight / 2 + this.$.list.selectedItem.offsetHeight / 2;        
+        if (this.$.list.selectedItem)
+          this.scrollTop = this.$.list.selectedItem.offsetTop - this.offsetHeight / 2 + this.$.list.selectedItem.offsetHeight / 2;
       },
 
       /**
@@ -122,7 +122,12 @@ Property|Description|Default
       /**
        * Fires `year-selected` event when a year is chosen.
        */
-      _yearSelected: function () {
+      _yearSelected: function (newValue, oldValue) {
+        if (oldValue)
+          this._fireYearSelected();
+      },
+
+      _fireYearSelected: function () {
         this.fire('year-selected', { year: this._year });
       },
 
@@ -135,11 +140,11 @@ Property|Description|Default
       _updateEventListeners: function () {
         // clear the extra event listener from all items
         for (var i = 0; i < this.$.list.items.length; i++)
-          this.$.list.items[i].removeEventListener('tap', this._yearSelected);
+          this.$.list.items[i].removeEventListener('tap', this._fireYearSelected);
 
         // add extra event listener to selected item
-        if (this.$.list.selectedItem)           
-          this.$.list.selectedItem.addEventListener('tap', this._yearSelected);        
+        if (this.$.list.selectedItem)
+          this.$.list.selectedItem.addEventListener('tap', this._fireYearSelected);
       }
 
       /**
