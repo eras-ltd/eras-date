@@ -11,10 +11,12 @@
 
   <link rel='import' href='../../iron-demo-helpers/demo-pages-shared-styles.html'>
   <link rel='import' href='../../iron-demo-helpers/demo-snippet.html'>
+  <link rel='import' href='../../paper-material/paper-material.html'>
   <link rel='import' href='../eras-date.html'>
 
   <style is='custom-style' include='demo-pages-shared-styles'>
-    eras-date {
+    paper-material {
+      width: 270px;
       margin: 0 auto;
     }
   </style>
@@ -25,7 +27,9 @@
     <h3>Basic eras-date demo</h3>
     <demo-snippet>
       <template>
-        <eras-date value='2017-08-15' min='2010-07-15' max='2020-09-15'></eras-date>
+        <paper-material>
+          <eras-date value='2017-08-15' min='2010-07-15' max='2020-09-15'></eras-date>
+        </paper-material>
       </template>
     </demo-snippet>
   </div>
