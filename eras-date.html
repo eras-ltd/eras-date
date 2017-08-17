@@ -40,10 +40,10 @@ Property|Description|Default
         --eras-calendar-cell-size: calc(var(--eras-calendar-width) / 7);
         --eras-calendar-cell-margin: 2px;
         --eras-calendar-nav-height: 40px;
-        --eras-calendar-height: calc(var(--eras-calendar-cell-size, 35px) * 7 + var(--eras-calendar-nav-height)); /* 6 date rows + nav = 7 */   
-
+        --eras-calendar-height: calc(var(--eras-calendar-cell-size, 35px) * 7 + var(--eras-calendar-nav-height));
+        /* 6 date rows + nav = 7 */
         width: var(--eras-date-width);
-      }      
+      }
 
       #pages {
         height: var(--eras-calendar-height);
@@ -105,7 +105,29 @@ Property|Description|Default
             'from-left': 'slide-from-left-animation',
             'from-right': 'slide-from-right-animation'
           }
-        }   
+        }
+      },
+
+      attached: function () {
+        if (!this.min && !this.max) {
+          this.min = moment().subtract(10, 'years').format('YYYY-MM-DD');
+          this.max = moment().add(5, 'years').format('YYYY-MM-DD');
+        } else if (!this.min) {
+          this.min = moment(this.max, 'YYYY-MM-DD').subtract(15, 'years').format('YYYY-MM-DD');
+        } else if (!this.max) {
+          this.max = moment(this.min, 'YYYY-MM-DD').add(15, 'years').format('YYYY-MM-DD');
+        }
+
+        if (!this.value) 
+          this.value = moment().format('YYYY-MM-DD');
+          
+        if(moment(this.value,'YYYY-MM-DD').isBefore(moment(this.min, 'YYYY-MM-DD')))
+          this.value = this.min;
+
+        if(moment(this.value,'YYYY-MM-DD').isAfter(moment(this.max, 'YYYY-MM-DD')))
+          this.value = this.max;
+
+        this.$.calendar.change(moment(this.value, 'YYYY-MM-DD').format('YYYY-MM'));
       },
 
       /**
@@ -113,8 +135,8 @@ Property|Description|Default
        * `eras-years.update()` to scroll the selected
        * year into view.
        */
-      _showYears: function() {
-        this.$.display.setAttribute('focus-years','');
+      _showYears: function () {
+        this.$.display.setAttribute('focus-years', '');
         this._entry = this._animations['from-left'];
         this._exit = this._animations['to-right'];
         this._page = 1;
@@ -126,18 +148,18 @@ Property|Description|Default
        * the month being displayed with the selected 
        * year.
        */
-      _changeYear: function(e) {
+      _changeYear: function (e) {
         this.$.display.removeAttribute('focus-years');
         this._entry = this._animations['from-right'];
         this._exit = this._animations['to-left'];
         this._page = 0;
 
         var year = e.detail.year;
-        if(!year)
+        if (!year)
           return;
 
         var month = moment(this.$.calendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
-        this.$.calendar.change(month);      
+        this.$.calendar.change(month);
       }
     });
   </script>
