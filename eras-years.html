@@ -12,6 +12,7 @@ Property|Description|Default
 --------|-----------|-------
 `--theme-colour`|Colour of the selected date's cell|`--primary-color`
 `--eras-calendar-width`|Width of the element|`250px`
+`--eras-calendar-height`|Height of the element|`285px`
 
 @demo demo/eras-years_demo.html
 -->
@@ -20,12 +21,14 @@ Property|Description|Default
     <style include='iron-flex iron-flex-alignment'>
        :host {
         display: block;
+        height: var(--eras-calendar-height, 285px);
         width: var(--eras-calendar-width, 250px);
+        overflow-y: scroll;
         --paper-item-min-height: 40px;
         --paper-item-selected: {
           color: var(--theme-colour, --primary-color);
           font-size: 22px;
-        }
+        }        
       }
 
       paper-item {

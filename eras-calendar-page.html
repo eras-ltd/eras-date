@@ -14,6 +14,7 @@ Property|Description|Default
 `--eras-calendar-weekdays-height`|Height to be left for weekdays|`0px`
 `--eras-calendar-cell-size`|Height and width of the date cells|`35px`
 `--eras-calendar-cell-margin`|Gap between cells|`2px`
+`--eras-calendar-nav-height`|Height of the month year display at the top|`40px`
 
 @demo demo/eras-calendar-page_demo.html
 -->
@@ -26,7 +27,7 @@ Property|Description|Default
       }
 
       #month {
-        height: var(--eras-calendar-cell-size, 35px);
+        height: var(--eras-calendar-nav-height, 40px);
         margin-bottom: var(--eras-calendar-weekdays-height, 0px);
         font-weight: bold;
       }

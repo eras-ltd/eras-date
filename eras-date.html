@@ -36,6 +36,8 @@ Property|Description|Default
         --eras-calendar-width: calc(var(--eras-date-width) - var(--eras-calendar-padding, 10px) * 2);
         --eras-calendar-cell-size: calc(var(--eras-calendar-width) / 7);
         --eras-calendar-cell-margin: 2px;
+        --eras-calendar-nav-height: 40px;
+        --eras-calendar-height: calc(var(--eras-calendar-cell-size, 35px) * 7 + var(--eras-calendar-nav-height)); /* 6 date rows + nav = 7 */   
 
         width: var(--eras-date-width);
       }      

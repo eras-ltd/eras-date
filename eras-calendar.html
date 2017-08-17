@@ -18,6 +18,8 @@ Property|Description|Default
 --------|-----------|-------
 `--eras-calendar-width`|Width of the element|`250px`
 `--eras-calendar-cell-size`|Height and width of the date cells|`35px`
+`--eras-calendar-nav-height`|Height of the month navigation row|`40px`
+`--eras-calendar-height`|Total height of the element|`285px`
 
 @demo demo/eras-calendar_demo.html
 -->
@@ -26,11 +28,9 @@ Property|Description|Default
     <style include='iron-flex iron-flex-alignment'>
        :host {
         display: block;
-
-        --eras-calendar-weekdays-height: var(--eras-calendar-cell-size, 35px); 
-        --eras-calendar-height: calc(var(--eras-calendar-cell-size, 35px) * 8);       
+        --eras-calendar-weekdays-height: var(--eras-calendar-cell-size, 35px);          
         width: var(--eras-calendar-width, 250px);
-        height: var(--eras-calendar-height);
+        height: var(--eras-calendar-height, 285px);
         padding: 0 var(--eras-calendar-padding, 10px);
         position: relative;
         /* background-color: yellow; */
@@ -45,7 +45,7 @@ Property|Description|Default
       }
 
       #nav {
-        height: var(--eras-calendar-cell-size, 35px);
+        height: var(--eras-calendar-nav-height, 40px);
       }
 
       #days {
@@ -55,7 +55,7 @@ Property|Description|Default
       }
 
       #pages {
-        height: var(--eras-calendar-height);
+        height: var(--eras-calendar-height, 285px);
         z-index: 1;
         overflow: hidden;
       }
