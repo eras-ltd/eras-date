@@ -120,13 +120,20 @@ Property|Description|Default
       },
 
       /**
-       * Fires `year-selected` event when a year is chosen.
+       * Will call `_fireYearSelected()` if there is an `oldValue`
+       * indicating that the year has been changed, rather than just
+       * initialising the element.
+       * @param {Number} newValue
+       * @param {Number} oldValue
        */
       _yearSelected: function (newValue, oldValue) {
         if (oldValue)
           this._fireYearSelected();
       },
 
+      /**
+       * Just fires `year-selected` event 
+       */
       _fireYearSelected: function () {
         this.fire('year-selected', { year: this._year });
       },
