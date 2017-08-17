@@ -28,7 +28,11 @@ Property|Description|Default
         --paper-item-selected: {
           color: var(--theme-colour, --primary-color);
           font-size: 22px;
-        }        
+        }
+      }
+
+      #list {
+        position: relative;
       }
 
       paper-item {
@@ -36,7 +40,7 @@ Property|Description|Default
         transition: all 100ms linear;
       }
     </style>
-    <paper-listbox id='list' selected='{{_current}}' attr-for-selected='year'>
+    <paper-listbox id='list' selected='{{_year}}' attr-for-selected='year' on-selected-item-changed='_updateEventListeners'>
       <template is='dom-repeat' items='{{_years}}' as='year'>
         <paper-item class='layout horizontal center' year='{{year}}'>
           <div class='flex'></div>
@@ -51,7 +55,10 @@ Property|Description|Default
       is: 'eras-years',
       properties: {
         /** The currently selected date in the 'YYYY-MM-DD' format. */
-        value: String,
+        value: {
+          type: String,
+          observer: '_valueChanged'
+        },
 
         /** The earliest date allowed in 'YYYY-MM-DD' format.  */
         min: String,
@@ -60,9 +67,9 @@ Property|Description|Default
         max: String,
 
         /** The currently selected year computed from `value`. */
-        _current: {
+        _year: {
           type: Number,
-          computed: '_computeCurrent(value)'
+          observer: '_yearSelected'
         },
 
         /** 
@@ -73,15 +80,7 @@ Property|Description|Default
           type: Array,
           computed: '_computeYears(value, min, max)'
         },
-      },
-      /**
-       * Computes `_current`
-       * @param {String} value YYYY-MM-DD
-       * @return {Number} YYYY
-       */
-      _computeCurrent: function (value) {
-        return moment(value, 'YYYY-MM-DD').year();
-      },
+      },      
 
       /**
        * Computes `_years`
@@ -99,7 +98,55 @@ Property|Description|Default
           arr.push(i);
 
         return arr;
+      },
+
+      /**
+       * Scrolls the selected item into view if there is one.       
+       */
+      update: function () {
+        if (this.$.list.selectedItem) 
+          this.scrollTop = this.$.list.selectedItem.offsetTop - this.offsetHeight / 2 + this.$.list.selectedItem.offsetHeight / 2;        
+      },
+
+      /**
+       * Observes `value` and updates `_year` when it changes.
+       */
+      _valueChanged: function (value) {
+        if (!value)
+          return;
+
+        this._year = moment(value, 'YYYY-MM-DD').year();
+        this.update();
+      },
+
+      /**
+       * Fires `year-selected` event when a year is chosen.
+       */
+      _yearSelected: function () {
+        this.fire('year-selected', { year: this._year });
+      },
+
+      /**
+       * Adds an event listener to the selected item (and clears
+       * it from the others) so that when clicking on the currently
+       * selected year it fires `year-selected` which can be used
+       * to close the year picker.
+       */
+      _updateEventListeners: function () {
+        // clear the extra event listener from all items
+        for (var i = 0; i < this.$.list.items.length; i++)
+          this.$.list.items[i].removeEventListener('tap', this._yearSelected);
+
+        // add extra event listener to selected item
+        if (this.$.list.selectedItem)           
+          this.$.list.selectedItem.addEventListener('tap', this._yearSelected);        
       }
+
+      /**
+       * Fired when a year is tapped
+       * @event year-selected
+       * @param {{year:Number}} detail `YYYY`
+       */
     });
   </script>
 </dom-module>
