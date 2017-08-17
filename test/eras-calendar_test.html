@@ -142,30 +142,65 @@
               suite(data[i].name, dataTest(data[i].min, data[i].max, data[i].value, data[i].previousDisabled, data[i].nextDisabled));
           });
         });
+      });
 
-        suite('selection', function () {
-          var page;
-          var spy;
+      suite('coercion', function () {
+        setup(function () {
+          el.min = '2017-02-15';
+          el.max = '2017-11-15';
+        });
 
-          setup(function () {
-            el.min = '2017-08-01';
-            el.min = '2017-08-31';
-            el.value = '2017-08-15';
-            el._page = 0;
-            page = el.$.pages.querySelector('[index="' + el._page + '"]');
-            spy = sinon.spy(el, '_dateSelected');
-          });
-
-          teardown(function () {
-            el._dateSelected.restore();
-          });
-
-          test('new date', function (done) {
-            var newDate = '2017-08-05';
-            page.fire('date-selected', { date: newDate });
-            assert(spy.calledOnce, 'expected `eras-calendar._dateSelected()` to have been called once');
+        var dataTest = function (input, expected) {
+          return function (done) {
+            var actual = el._coerce(input);
+            assert.equal(expected, actual, 'expected the output to be ' + expected);
             done();
-          });
+          };
+        };
+
+        var data = [
+          { input: '2016-12', expected: '2017-02' },
+          { input: '2017-01', expected: '2017-02' },
+          { input: '2017-02', expected: '2017-02' },
+          { input: '2017-03', expected: '2017-03' },
+          { input: '2017-04', expected: '2017-04' },
+          { input: '2017-05', expected: '2017-05' },
+          { input: '2017-06', expected: '2017-06' },
+          { input: '2017-07', expected: '2017-07' },
+          { input: '2017-08', expected: '2017-08' },
+          { input: '2017-09', expected: '2017-09' },
+          { input: '2017-10', expected: '2017-10' },
+          { input: '2017-11', expected: '2017-11' },
+          { input: '2017-12', expected: '2017-11' },
+          { input: '2018-01', expected: '2017-11' }
+        ];
+
+        for (var i = 0; i < data.length; i++)                    
+          test(data[i].input, dataTest(data[i].input, data[i].expected));
+      });
+
+      suite('selection', function () {
+        var page;
+        var spy;
+
+        setup(function () {
+          el.min = '2017-08-01';
+          el.min = '2017-08-31';
+          el.value = '2017-08-15';
+          el._page = 0;
+          page = el.$.pages.querySelector('[index="' + el._page + '"]');
+          spy = sinon.spy(el, '_dateSelected');
+        });
+
+        teardown(function () {
+          el._dateSelected.restore();
+        });
+
+        test('new date', function (done) {
+          var newDate = '2017-08-05';
+          page.fire('date-selected', { date: newDate });
+          assert(spy.calledOnce, 'expected `eras-calendar._dateSelected()` to have been called once');
+          done();
         });
       });
     });
