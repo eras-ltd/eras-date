@@ -121,6 +121,11 @@ Property|Description|Default
         this.$.years.update();
       },
 
+      /**
+       * Slide the calendar back into view and update 
+       * the month being displayed with the selected 
+       * year.
+       */
       _changeYear: function(e) {
         this.$.display.removeAttribute('focus-years');
         this._entry = this._animations['from-right'];
