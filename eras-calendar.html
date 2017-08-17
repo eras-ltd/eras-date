@@ -128,6 +128,17 @@ Property|Description|Default
           computed: '_computeNextDisabled(_page, max)'
         },
 
+        /** The animation to use for the incoming `neon-animated-pages` page */
+        _entry: {
+          type: String,
+          value: ""
+        },
+        /** The animation to use for the outgoing `neon-animated-pages` page */
+        _exit: {
+          type: String,
+          value: ""
+        },
+
         /**
          * An associative array of animations to use when transitioning between pages.
          * @type {String[]}
