@@ -17,10 +17,10 @@
   <link rel='import' href='../eras-date.html'>
 </head>
 
-<body> 
+<body>
   <test-fixture id='date-fixture'>
     <template>
-      <eras-date></eras-date>
+      <eras-date value='2017-04-18' min='1900-01-01' max='2020-12-31'></eras-date>
     </template>
   </test-fixture>
 
@@ -30,10 +30,31 @@
 
       setup(function () {
         el = fixture('date-fixture');
+        // el.min = '1900-01-01';
+        // el.max = '2020-12-31';
+        // el.value = '2017-04-18';
       });
 
       test('instantiation', function () {
         assert.equal(el.is, 'eras-date');
+      });
+
+      test('selection', function (done) {
+        flush(function () {
+          var target = '1986-02-28';
+          el.$.display.$.year.click();
+          el.$.years.$.list.items[34].click();
+          el.$.calendar.$.previous.click();
+          el.$.calendar.$.previous.click();
+
+          flush(function () {
+            var page = el.$.calendar.$.pages.querySelector('[index=\'' + el.$.calendar._page + '\']');
+            var dates = page.$.dates.querySelectorAll('.cell:not(.blank)');
+            dates[27].click();     
+            assert.equal(target, el.value, 'expected ' + target + ' to have been selected.');      
+            done();
+          });
+        });
       });
     });
   </script>
