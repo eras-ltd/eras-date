@@ -1,0 +1,25 @@
+{
+  "testTimeout": 360000,
+  "plugins": {
+    "sauce": {
+      "disabled": false,
+      "browsers": [
+        {
+          "browserName": "microsoftedge",
+          "platform": "Windows 10",
+          "version": ""
+        },
+        {
+          "browserName": "internet explorer",
+          "platform": "Windows 10",
+          "version": "11.103"
+        },
+        {
+          "browserName": "safari",
+          "platform": "OS X 10.11",
+          "version": "9"
+        }
+      ]
+    }
+  }
+}
