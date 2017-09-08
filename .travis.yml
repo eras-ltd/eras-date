@@ -5,15 +5,9 @@ sudo: required
 addons:
   firefox: latest
   chrome: stable
-  sauce_connect: true
 before_script:
 - npm install -g bower polylint web-component-tester
 - bower install
 - polylint
 script:
-- xvfb-run wct --skip-plugin sauce
-- if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct --skip-plugin local; fi
-env:
-  global:
-  - secure: R6C7zapVM7pADh76FhtJTlzzGXnbq2THwYG6x38OciuSTTQOsNy+odrj8VylXaN/QcdTMT2n/+P2PeyajHsj31bH5w2gUlQge+52oARlxcNup4P7skvUZiFZAFM2EW4MfXfVLIImMHsqMk60HDC/6VlyYmNVbOypgUUYwLRgjgm3aJxi1tHjzO4YZ9GVEa029Tnh5A0rFZLfZ/M+V03kuVsiq4ElaS+nX82gHBMku9IYJf4ZIZwF3ttgQYG6Piim2wqV1C73fMztDg16ogyW7qDGQqYiBauUP76kHqo/3ZpWNfvwj0tNLIyRN7xM31bws4CyQjDtQ5yoXRjUfk0c0JaI+C2PbWDBXyCROjqTBM7Qwyij+WNkZGbyxNIl6HqLg2ffXWR8NnpnDRQ2tfK7w2+xe7SV5ABYQ+RYpQNCiC+ztT1VL4gvwl4nOtofIwWABxwImdvf+VfyVqM6EIBv5eWNaYPi2JwH+9SBeIOFu9h6j4urg5hI3eHsb0Yhs+PZ+A2JM+HD7UGcA3apPMp7fO86aMYl6AkMPbIRy8aR2H7uUllkq68YnVzfdcuVpeOOlvCi2uNa4EqBevNsdRdcQkOWq1tTGidSi7JzXnr3YhhlnFBvc3qxbyNI9LKtfePwYQ30lzhGqmf8BvnkYCjRC08mgET9vQBTxjLr2Z9j3xg=
-  - secure: roJ9gal/GiVmFWEChlNaIGNiKUwjd4/Yv75E7aoM+xbH3wUu+PrfnklDe8HTbKyMO02DTNGI794efVBm+Kd4TwtFnsvZa6PlZecYQX/IZAiOIsTQwgsNdL98DFzt5V8sQM7y6Gd27Nefzrb/FdfkkkztYwCLZjVm2wQngAlObGJtJAcrt/uAWOs9RBwLLvbXxW8+t1PJJQD2eqZl2JfD7gxOmOKq/OIsjje6T3AGTeUitSwVO5svwWTdoVzNDlgzR2q7LYFHmcgYVW6T9MNDTXRXZLTKg5Y6eX8l9aDq5Hjl+vErQDa6I1S1eivvK9Gw0X+wAfldOogJR+CxAZXnuak6qbCX1WjfWYUL+Da86YfRhtUGBdoe60EmmAto+izwTyy+6TlFzGsj/+SaLuS6P0VON3/6auc3kWIrZBYQn0pWoLY0zFX/VuvYL0fg4uwrQIJM2fZzp52cClVweU6rHKzCOsnUY33HvGgDEw4v+S5cvlOdUPmfl9/PMsYOVGkWBf2W6J5Uph6k0wnoPTkze5EVoFT1Yg8+J5vU74ctKwwmMzRhtDz8xLPSJs4miQjFiZ9MzIObm9unaKd/R0AHzk1jrK0DAXlmu+u4gyJQcZELkB/RGAE/MDwGQaMUATkiBEz9oubSdsEyiJrsIII6ffLasGAPrTB0ll1oQESb0Sw=
+- xvfb-run wct
