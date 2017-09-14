@@ -30,9 +30,6 @@
 
       setup(function () {
         el = fixture('date-fixture');
-        // el.min = '1900-01-01';
-        // el.max = '2020-12-31';
-        // el.value = '2017-04-18';
       });
 
       test('instantiation', function () {
@@ -43,21 +40,27 @@
         flush(function () {
           var target = '1986-02-28';
           MockInteractions.tap(el.$.display.$.year);
-          MockInteractions.tap(el.$.years.$.list.items[34]);
 
           // need to wait for the animations to finish before 
           // we can click on the buttons
           // sadly the event that signifies they finish doesn't bubble
-          setTimeout(function() {
-            MockInteractions.tap(el.$.calendar.$.previous);
-            MockInteractions.tap(el.$.calendar.$.previous);
+          setTimeout(function () {
+            MockInteractions.tap(el.$.years.$.list.items[34]);
 
-            var page = el.$.calendar.$.pages.querySelector('[index=\'' + el.$.calendar._page + '\']');
-            var dates = page.$.dates.querySelectorAll('.cell:not(.blank)');
-            dates[27].click();     
-            assert.equal(target, el.value, 'expected ' + target + ' to have been selected.');      
-            done();
+            setTimeout(function () {
+              MockInteractions.tap(el.$.calendar.$.previous);
+              MockInteractions.tap(el.$.calendar.$.previous);
+
+              var page = el.$.calendar.$.pages.querySelector('[index=\'' + el.$.calendar._page + '\']');
+              var dates = page.$.dates.querySelectorAll('.cell:not(.blank)');
+              dates[27].click();
+              assert.equal(target, el.value, 'expected ' + target + ' to have been selected.');      
+              done();
+            }, 600);
           }, 600);
+
+          
+
         });
       });
     });
