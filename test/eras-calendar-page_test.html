@@ -66,7 +66,7 @@
           suite('enabled/disabled', function () {
             var dates;
 
-            suiteSetup(function () {
+            setup(function () {
               el.min = '2017-08-05';
               el.max = '2017-08-26';
               el.month = '2017-08';
@@ -85,6 +85,34 @@
             for (var i = 1; i <= 31; i++) {
               var m = moment('2017-08-' + i, 'YYYY-MM-DD');
               var expected = i >= 5 && i <= 26; // is between min and max
+              test(m.format('Do'), dataTest(i, expected));
+            }
+          });
+
+          suite('range', function () {
+            var dates;
+
+            setup(function () {
+              el.from = '2017-08-05';
+              el.to = '2017-08-26';
+              el.month = '2017-08';
+              el.value = null;
+              el.min = '2017-08-01';
+              el.max = '2017-08-31';
+              dates = el._dates;
+            });
+
+            var dataTest = function (date, expected) {
+              return function (done) {
+                var actual = dates[date - 1];
+                assert.equal(expected, actual.inRange, 'expected this date to be ' + (expected ? 'in the range' : 'out of the range'));
+                done();
+              };
+            };
+
+            for (var i = 1; i <= 31; i++) {
+              var m = moment('2017-08-' + i, 'YYYY-MM-DD');
+              var expected = i >= 5 && i <= 26; // is between from and to
               test(m.format('Do'), dataTest(i, expected));
             }
           });

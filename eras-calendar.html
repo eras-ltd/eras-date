@@ -88,8 +88,8 @@ Property|Description|Default
     </div>
 
     <neon-animated-pages id='pages' selected='{{_page}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
-      <eras-calendar-page index='0' value$='[[value]]' min$='{{min}}' max$='{{max}}' month='2000-01' on-date-selected='_dateSelected'></eras-calendar-page>
-      <eras-calendar-page index='1' value$='[[value]]' min$='{{min}}' max$='{{max}}' month='2000-01' on-date-selected='_dateSelected'></eras-calendar-page>
+      <eras-calendar-page index='0' value$='[[value]]' min$='{{min}}' max$='{{max}}' from$='{{from}}' to$='{{to}}' month='2000-01' on-date-selected='_dateSelected'></eras-calendar-page>
+      <eras-calendar-page index='1' value$='[[value]]' min$='{{min}}' max$='{{max}}' from$='{{from}}' to$='{{to}}' month='2000-01' on-date-selected='_dateSelected'></eras-calendar-page>
     </neon-animated-pages>
 
   </template>
@@ -110,6 +110,18 @@ Property|Description|Default
 
         /** The latest date allowed in 'YYYY-MM-DD' format. */
         max: String,
+
+        /** 
+         * The start of a date range in 'YYYY-MM-DD' format. *Optional* 
+         * Used for styling purposes only!
+         */
+        from: String,
+
+        /** 
+         * The end of a date range in 'YYYY-MM-DD' format. *Optional* 
+         * Used for styling purposes only!
+         */
+        to: String,
 
         /** 
          * The month that will be displayed in the 'YYYY-MM' format. 

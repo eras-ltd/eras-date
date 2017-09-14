@@ -10,6 +10,7 @@
 Property|Description|Default
 --------|-----------|-------
 `--theme-colour`|Colour of the selected date's cell|`--primary-color`
+`--light-theme-colour`|Colour of the date cells in the specified range|`--light-primary-color`
 `--eras-calendar-width`|Width of the element|`250px`
 `--eras-calendar-weekdays-height`|Height to be left for weekdays|`0px`
 `--eras-calendar-cell-size`|Height and width of the date cells|`35px`
@@ -55,10 +56,15 @@ Property|Description|Default
         background-color: var(--paper-grey-300);
       }
 
+      .cell[in-range] {
+        background-color: var(--light-theme-colour, --light-primary-color);
+        color: white;
+      }
+
       .cell[selected] {
         background-color: var(--theme-colour, --primary-color);
         color: white;
-      }
+      }      
 
       .cell[disabled],
       .cell.blank {
@@ -82,7 +88,8 @@ Property|Description|Default
       <template is='dom-repeat' items='{{_dates}}' as='date'>
 
         <template is='dom-if' if='{{date.enabled}}'>
-          <div class='cell' today$='{{date.today}}' selected$='{{date.selected}}' date$='{{date.date}}' on-tap='_select'>
+          <div class='cell' today$='{{date.today}}' selected$='{{date.selected}}' in-range$='{{date.inRange}}' date$='{{date.date}}'
+            on-tap='_select'>
             {{date.date}}
             <paper-ripple></paper-ripple>
           </div>
@@ -117,6 +124,24 @@ Property|Description|Default
         /** The latest date allowed in 'YYYY-MM-DD' format. */
         max: String,
 
+        /** 
+         * The start of a date range in 'YYYY-MM-DD' format. *Optional* 
+         * Used for styling purposes only!
+         */
+        from: {
+          type: String,
+          value: null
+        },
+
+        /** 
+         * The end of a date range in 'YYYY-MM-DD' format. *Optional* 
+         * Used for styling purposes only!
+         */
+        to: {
+          type: String,
+          value: null
+        },
+
         /** The month that will be displayed in the 'YYYY-MM' format. */
         month: String,
 
@@ -132,7 +157,7 @@ Property|Description|Default
          */
         _dates: {
           type: Array,
-          computed: '_computeDates(min,max,month,value)'
+          computed: '_computeDates(min,max,from,to,month,value)'
         },
 
         /**
@@ -182,24 +207,35 @@ Property|Description|Default
        * @param {String} value `value`
        * @return {{ date:Number, today:Boolean, selected:Boolean, enabled:Boolean }[]}
        */
-      _computeDates: function (min, max, month, value) {
+      _computeDates: function (min, max, from, to, month, value) {
         if (!min || !max || !month)
           return;
 
-        var selected = moment(value, 'YYYY-MM-DD');
-        var month = moment(month, 'YYYY-MM');
-        var min = moment(min, 'YYYY-MM-DD');
-        var max = moment(max, 'YYYY-MM-DD');
+        var _selected = moment(value, 'YYYY-MM-DD');
+        var _month = moment(month, 'YYYY-MM');
+        var _min = moment(min, 'YYYY-MM-DD');
+        var _max = moment(max, 'YYYY-MM-DD');
+        var _hasRange = false;
+        var _from;
+        var _to;
+
+        if(from && to) {
+          _hasRange = true;
+          _from = moment(from, 'YYYY-MM-DD');
+          _to = moment(to, 'YYYY-MM-DD');
+        }
+
         var dates = [];
 
-        for (var i = 1; i <= month.daysInMonth(); i++) {
-          var date = moment({ year: month.year(), month: month.month(), date: i });
+        for (var i = 1; i <= _month.daysInMonth(); i++) {
+          var _date = moment({ year: _month.year(), month: _month.month(), date: i });
 
           dates.push({
             date: i,
-            today: moment().isSame(date, 'date'),
-            selected: date.isSame(selected, 'date'),
-            enabled: !(date.isBefore(min, 'date') || date.isAfter(max, 'date')) // inclusive
+            today: moment().isSame(_date, 'date'),
+            selected: _date.isSame(_selected, 'date'),
+            enabled: _date.isSameOrAfter(_min, 'date') && _date.isSameOrBefore(_max, 'date'), // inclusive
+            inRange: _hasRange && _date.isSameOrAfter(_from, 'date') && _date.isSameOrBefore(_to, 'date')
           });
         }
 
