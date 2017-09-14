@@ -104,8 +104,8 @@
 
             assert(el.$.list.selectedItem, 'expected an item to be selected');
             assert.equal(2010, el.$.list.selected, 'expected `paper-listbox.selected` to be 2010');
-            assert.equal(2010, year, 'expected `year` to be 2010');
             assert.equal(1, fired, 'expected `year-selected` to have been fired once');
+            assert(year === undefined, 'expected `year` to be undefined');
             done();
           });
         });

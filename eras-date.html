@@ -157,12 +157,11 @@ Property|Description|Default
         this._exit = this._animations['to-left'];
         this._page = 0;
 
-        var m = moment(this.$.calendar.month, 'YYYY-MM');
-
-        if (e.detail.year === m.year())
+        var year = e.detail.year;
+        if (!year)
           return;
 
-        var month = m.year(e.detail.year).format('YYYY-MM');
+        var month = moment(this.$.calendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
         this.$.calendar.change(month);
       }
     });

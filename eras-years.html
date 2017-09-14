@@ -40,9 +40,9 @@ Property|Description|Default
         transition: all 100ms linear;
       }
     </style>
-    <paper-listbox id='list' selected='{{_year}}' attr-for-selected='data-year'>
+    <paper-listbox id='list' selected='{{_year}}' attr-for-selected='year' on-selected-item-changed='_updateEventListeners'>
       <template is='dom-repeat' items='{{_years}}' as='year'>
-        <paper-item class='layout horizontal center' data-year$='{{year}}'>
+        <paper-item class='layout horizontal center' year='{{year}}'>
           <div class='flex'></div>
           <div>{{year}}</div>
           <div class='flex'></div>
@@ -120,7 +120,7 @@ Property|Description|Default
       },
 
       /**
-       * Will fire `year-selected` if there is an `oldValue`
+       * Will call `_fireYearSelected()` if there is an `oldValue`
        * indicating that the year has been changed, rather than just
        * initialising the element.
        * @param {Number} newValue
@@ -128,8 +128,31 @@ Property|Description|Default
        */
       _yearSelected: function (newValue, oldValue) {
         if (oldValue)
-          this.fire('year-selected', { year: this._year });
+          this._fireYearSelected();
       },
+
+      /**
+       * Just fires `year-selected` event 
+       */
+      _fireYearSelected: function () {
+        this.fire('year-selected', { year: this._year });
+      },
+
+      /**
+       * Adds an event listener to the selected item (and clears
+       * it from the others) so that when clicking on the currently
+       * selected year it fires `year-selected` which can be used
+       * to close the year picker.
+       */
+      _updateEventListeners: function () {
+        // clear the extra event listener from all items
+        for (var i = 0; i < this.$.list.items.length; i++)
+          this.$.list.items[i].removeEventListener('tap', this._fireYearSelected);
+
+        // add extra event listener to selected item
+        if (this.$.list.selectedItem)
+          this.$.list.selectedItem.addEventListener('tap', this._fireYearSelected);
+      }
 
       /**
        * Fired when a year is tapped
