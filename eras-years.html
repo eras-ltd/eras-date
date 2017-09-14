@@ -40,9 +40,9 @@ Property|Description|Default
         transition: all 100ms linear;
       }
     </style>
-    <paper-listbox id='list' selected='{{_year}}' attr-for-selected='year' on-selected-item-changed='_updateEventListeners'>
+    <paper-listbox id='list' selected='{{_year}}' attr-for-selected='data-year' on-tap='_requestClose' on-iron-select='_yearSelected'>
       <template is='dom-repeat' items='{{_years}}' as='year'>
-        <paper-item class='layout horizontal center' year='{{year}}'>
+        <paper-item class='layout horizontal center' data-year$='{{year}}'>
           <div class='flex'></div>
           <div>{{year}}</div>
           <div class='flex'></div>
@@ -67,10 +67,7 @@ Property|Description|Default
         max: String,
 
         /** The currently selected year computed from `value`. */
-        _year: {
-          type: Number,
-          observer: '_yearSelected'
-        },
+        _year: Number,
 
         /** 
          * Array of years from min to max inclusive.
@@ -116,48 +113,34 @@ Property|Description|Default
           return;
 
         this._year = moment(value, 'YYYY-MM-DD').year();
-        this.update();
+        this.update();             
       },
 
       /**
-       * Will call `_fireYearSelected()` if there is an `oldValue`
-       * indicating that the year has been changed, rather than just
-       * initialising the element.
-       * @param {Number} newValue
-       * @param {Number} oldValue
+       * Fired a `year-close-requested` event in responsed to any year being tapped
+       * to inform the parent that the year picker should be closed.
        */
-      _yearSelected: function (newValue, oldValue) {
-        if (oldValue)
-          this._fireYearSelected();
+      _requestClose: function() {
+        this.fire('year-close-requested');
       },
 
       /**
-       * Just fires `year-selected` event 
+       * Fires a `year-selected` event when a different year is tapped to inform
+       * the parent that a new year has been selected.
        */
-      _fireYearSelected: function () {
-        this.fire('year-selected', { year: this._year });
-      },
-
-      /**
-       * Adds an event listener to the selected item (and clears
-       * it from the others) so that when clicking on the currently
-       * selected year it fires `year-selected` which can be used
-       * to close the year picker.
-       */
-      _updateEventListeners: function () {
-        // clear the extra event listener from all items
-        for (var i = 0; i < this.$.list.items.length; i++)
-          this.$.list.items[i].removeEventListener('tap', this._fireYearSelected);
-
-        // add extra event listener to selected item
-        if (this.$.list.selectedItem)
-          this.$.list.selectedItem.addEventListener('tap', this._fireYearSelected);
+      _yearSelected: function() {
+        this.fire('year-selected', { year: parseInt(this._year) });   
       }
 
       /**
-       * Fired when a year is tapped
+       * Fired when a different year is selected
        * @event year-selected
        * @param {{year:Number}} detail `YYYY`
+       */
+
+       /**
+       * Fired when any year is tapped
+       * @event year-close-requested
        */
     });
   </script>

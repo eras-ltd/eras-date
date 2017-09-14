@@ -60,11 +60,11 @@
       suite('selection', function () {
         var spy;
 
-        setup(function () {
-          spy = sinon.spy(el, 'fire');
+        setup(function () {          
           el.min = '2000-05-01';
           el.max = '2020-06-30';
           el.value = '2010-08-17';
+          spy = sinon.spy(el, 'fire').withArgs('year-selected');
         });
 
         teardown(function () {
@@ -79,33 +79,27 @@
           });
         });
 
-        test('new selection', function (done) {
+        test('new selection', function (done) {          
           flush(function () {
+            spy.reset();   // event gets fired during set up          
             var item = el.$.list.items[0];
             MockInteractions.tap(item);
             assert(el.$.list.selectedItem, 'expected an item to be selected');
             assert.equal(2020, el.$.list.selected, 'expected `paper-listbox.selected` to be 2020');
-            assert(spy.withArgs('year-selected').calledOnce);
+            assert(spy.calledOnce, 'expected `year-selected` to have been fired once not ' + spy.callCount + ' times');
             done();
           });
         });
 
         test('previous selection', function (done) {
           flush(function () {
-            // for some reason sinon's spy is not picking up this event being fired
-            // i know it is being fired properly as i can test it by adding an event 
-            // listener as below
-            var fired = 0;
-            var year;
-            el.addEventListener('year-selected', function(e){ fired++; year = e.detail.year; });
-
             var item = el.$.list.selectedItem;
             MockInteractions.tap(item);
 
             assert(el.$.list.selectedItem, 'expected an item to be selected');
             assert.equal(2010, el.$.list.selected, 'expected `paper-listbox.selected` to be 2010');
-            assert.equal(1, fired, 'expected `year-selected` to have been fired once');
-            assert(year === undefined, 'expected `year` to be undefined');
+            assert(spy.calledOnce, 'expected `year-selected` to have been fired once');     
+            assert.deepEqual({'year':2010}, spy.args[0][1], 'expected `event.detail` to be: ' + JSON.stringify({'year':2010})); 
             done();
           });
         });

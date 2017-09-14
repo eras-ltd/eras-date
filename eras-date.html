@@ -54,7 +54,7 @@ Property|Description|Default
 
     <neon-animated-pages id='pages' selected='{{_page}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
       <eras-calendar id='calendar' value='{{value}}' min='{{min}}' max='{{max}}'></eras-calendar>
-      <eras-years id='years' value='{{value}}' min='{{min}}' max='{{max}}' on-year-selected='_changeYear'></eras-years>
+      <eras-years id='years' value='{{value}}' min='{{min}}' max='{{max}}' on-year-selected='_changeYear' on-year-close-requested='_closeYears'></eras-years>
     </neon-animated-pages>
 
   </template>
@@ -152,17 +152,19 @@ Property|Description|Default
        * year.
        */
       _changeYear: function (e) {
-        this.$.display.removeAttribute('focus-years');
-        this._entry = this._animations['from-right'];
-        this._exit = this._animations['to-left'];
-        this._page = 0;
-
         var year = e.detail.year;
         if (!year)
           return;
 
         var month = moment(this.$.calendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
         this.$.calendar.change(month);
+      },
+
+      _closeYears: function () {
+        this.$.display.removeAttribute('focus-years');
+        this._entry = this._animations['from-right'];
+        this._exit = this._animations['to-left'];
+        this._page = 0;
       }
     });
   </script>
