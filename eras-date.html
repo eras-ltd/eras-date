@@ -53,7 +53,7 @@ Property|Description|Default
     <eras-date-display id='display' value='{{value}}' on-year-tapped='_showYears'></eras-date-display>
 
     <neon-animated-pages id='pages' selected='{{_page}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
-      <eras-calendar id='calendar' value='{{value}}' min='{{min}}' max='{{max}}' from$='{{from}}' to$='{{to}}'></eras-calendar>
+      <eras-calendar id='calendar' value='{{value}}' min='{{min}}' max='{{max}}'></eras-calendar>
       <eras-years id='years' value='{{value}}' min='{{min}}' max='{{max}}' on-year-selected='_changeYear'></eras-years>
     </neon-animated-pages>
 
@@ -74,18 +74,6 @@ Property|Description|Default
 
         /** The latest date allowed in 'YYYY-MM-DD' format. */
         max: String,
-
-        /** 
-         * The start of a date range in 'YYYY-MM-DD' format. *Optional* 
-         * Used for styling purposes only!
-         */
-         from: String,
-
-        /** 
-         * The end of a date range in 'YYYY-MM-DD' format. *Optional* 
-         * Used for styling purposes only!
-         */
-        to: String,
 
         /** The index of the calendar page to show (0 or 1) */
         _page: {
@@ -169,11 +157,12 @@ Property|Description|Default
         this._exit = this._animations['to-left'];
         this._page = 0;
 
-        var year = e.detail.year;
-        if (!year)
+        var m = moment(this.$.calendar.month, 'YYYY-MM');
+
+        if (e.detail.year === m.year())
           return;
 
-        var month = moment(this.$.calendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
+        var month = m.year(e.detail.year).format('YYYY-MM');
         this.$.calendar.change(month);
       }
     });
