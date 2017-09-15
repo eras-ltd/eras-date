@@ -304,6 +304,7 @@ Property|Description|Default
       /**
        * Update the `from` month being displayed with the 
        * selected year.
+       * @param {Event} e `eras-years.year-selected`
        */
       _changeFromYear: function (e) {
         var year = e.detail.year;
@@ -317,8 +318,9 @@ Property|Description|Default
       /**
        * Slides the `from` year picker our and the calendar
        * back into view.
+       * @param {Event} e `eras-years.year-close-requested`
        */
-      _closeFromYears: function () {
+      _closeFromYears: function (e) {
         this.$.fromDisplay.removeAttribute('focus-years');
         this._entry = this._animations['from-right'];
         this._exit = this._animations['to-left'];
@@ -328,6 +330,7 @@ Property|Description|Default
       /**
        * Update the `to` month being displayed with the 
        * selected year.
+       * @param {Event} e `eras-years.year-selected`
        */
       _changeToYear: function (e) {
         var year = e.detail.year;
@@ -341,6 +344,7 @@ Property|Description|Default
       /**
        * Slides the `to` year picker our and the calendar
        * back into view.
+       * @param {Event} e `eras-years.year-close-requested`
        */
       _closeToYears: function () {
         this.$.toDisplay.removeAttribute('focus-years');
