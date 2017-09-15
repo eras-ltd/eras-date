@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes'>
+
+  <title>eras-date-range test</title>
+
+  <script src='../../webcomponentsjs/webcomponents-lite.js'></script>
+  <script src='../../web-component-tester/browser.js'></script>
+  <script src='../bower_components/moment/moment.js'></script>
+  <script src='../bower_components/iron-test-helpers/mock-interactions.js'></script>
+  <link rel='import' href='../eras-date-range.html'>
+</head>
+
+<body>
+  <test-fixture id='eras-date-range-fixture'>
+    <template is='dom-template'>
+      <eras-date-range from$='{{from}}' to$='{{to}}' min$='{{min}}' max$='{{max}}'></eras-date-range>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('eras-date-range', function () {
+      var el;
+      suite('setup', function () {
+        setup(function () { });
+        teardown(function () { });
+
+        test('instantiation', function (done) {
+          el = fixture('eras-date-range-fixture');
+          assert.equal(el.is, 'eras-date-range');
+          done()
+        });
+
+        suite('defaults', function () {
+          var dataTest = function (input, expected) {
+            return function (done) {
+              el = fixture('eras-date-range-fixture', input);
+
+              var props = ['from', 'to', 'min', 'max'];
+
+              for (var i = 0; i < props.length; i++) {
+                assert.equal(expected[props[i]], el[props[i]],
+                  'expected `' + props[i] + '` to equal `' + expected[props[i]] + '` not `' + el[props[i]] + '`');
+              };
+              done();
+            };
+          };
+
+          var f = 'YYYY-MM-DD';
+          var year = moment.utc().format('YYYY');
+          var data = [
+            {
+              name: 'nothing',
+              input: {},
+              expected: {
+                from: moment.utc().subtract(7, 'days').format(f),
+                to: moment.utc().format(f),
+                min: moment.utc().subtract(7, 'days').subtract(10, 'years').format(f),
+                max: moment.utc().add(5, 'years').format(f)
+              }
+            },
+            {
+              name: 'from',
+              input: { from: '2017-07-01' },
+              expected: {
+                from: '2017-07-01',
+                to: '2017-07-08',
+                min: '2007-07-01',
+                max: '2022-07-08'
+              }
+            },
+            {
+              name: 'to',
+              input: { to: '2017-07-01' },
+              expected: {
+                from: '2017-06-24',
+                to: '2017-07-01',
+                min: '2007-06-24',
+                max: '2022-07-01'
+              }
+            },
+            {
+              name: 'from & to',
+              input: { from: '2017-02-05', to: '2017-11-12' },
+              expected: {
+                from: '2017-02-05',
+                to: '2017-11-12',
+                min: '2007-02-05',
+                max: '2022-11-12'
+              }
+            },
+            {
+              name: 'min & max',
+              input: {
+                min: year + '-01-01',
+                max: year + '-12-31'
+              },
+              expected: {
+                from: moment.utc().subtract(7, 'days').format(f),
+                to: moment.utc().format(f),
+                min: year + '-01-01',
+                max: year + '-12-31'
+              }
+            },
+            {
+              name: 'coercion',
+              input: {
+                from: '2017-07-15',
+                to: '2017-09-15',
+                min: '2017-08-01',
+                max: '2017-08-31'
+              },
+              expected: {
+                from: '2017-08-01',
+                to: '2017-08-31',
+                min: '2017-08-01',
+                max: '2017-08-31'
+              }
+            },
+          ];
+
+          for (var i = 0; i < data.length; i++)
+            test(data[i].name, dataTest(data[i].input, data[i].expected));
+        });
+
+        suite('default ranges', function () {
+          suiteSetup(function () {
+            el = fixture('eras-date-range-fixture', { min: '2010-01-01', max: '2020-12-31' });
+          });
+
+          var data = [
+            { input: 'today', expected: { from: '2017-04-15', to: '2017-04-15' } },
+            { input: 'yesterday', expected: { from: '2017-04-14', to: '2017-04-14' } },
+            { input: 'last7', expected: { from: '2017-04-08', to: '2017-04-15' } },
+            { input: 'last30', expected: { from: '2017-03-16', to: '2017-04-15' } },
+            { input: 'thisMonth', expected: { from: '2017-04-01', to: '2017-04-30' } },
+            { input: 'lastMonth', expected: { from: '2017-03-01', to: '2017-03-31' } },
+            { input: 'thisYear', expected: { from: '2017-01-01', to: '2017-12-31' } },
+            { input: 'lastYear', expected: { from: '2016-01-01', to: '2016-12-31' } },
+            { input: 'all', expected: { from: '2010-01-01', to: '2020-12-31' } }
+          ];
+
+          suite('_getDefaultRange', function () {
+            var dataTest = function (input, expected) {
+              return function (done) {
+                var actual = el._getDefaultRange(input, '2017-04-15');
+                assert.equal(expected.from, actual.from, 'expected `from` to be `' + expected.from + '` not `' + actual.from + '`');
+                assert.equal(expected.to, actual.to, 'expected `to` to be `' + expected.to + '` not `' + actual.to + '`');
+                done();
+              };
+            };
+
+            for (var i = 0; i < data.length; i++)
+              test(data[i].input, dataTest(data[i].input, data[i].expected));
+          });
+
+          suite('_setDefaultRange', function () {
+            var spy;
+
+            setup(function(){
+              spy = sinon.spy(el, '_getDefaultRange');
+            });
+
+            teardown(function(){
+              spy.restore();
+            });
+            
+            var dataTest = function (input) {
+              return function (done) {
+                var item = el.$.defaultRanges.querySelector('[data-target=\'' + input + '\']');
+                MockInteractions.tap(item);
+                assert(spy.calledOnce, 'expected `el._getDefaultRange` to have been called once');
+                assert.equal(input, spy.args[0][0], 'expected `el._getDefaultRange` to have been called with `' + input + '` not `'+ spy.args[0][0] + '`');
+                done();
+              };
+            };
+
+            for (var i = 0; i < data.length; i++)
+              test(data[i].input, dataTest(data[i].input));
+          });
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

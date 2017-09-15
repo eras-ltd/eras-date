@@ -1,0 +1,436 @@
+<link rel='import' href='../polymer/polymer.html'>
+<link rel='import' href='../neon-animation/neon-animated-pages.html'>
+<link rel='import' href='../neon-animation/animations/slide-left-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-right-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-from-left-animation.html'>
+<link rel='import' href='../neon-animation/animations/slide-from-right-animation.html'>
+<link rel='import' href='../paper-icon-button/paper-icon-button.html'>
+<link rel='import' href='../paper-item/paper-item.html'>
+<link rel='import' href='../paper-menu/paper-menu.html'>
+<link rel='import' href='../paper-menu-button/paper-menu-button.html'>
+<link rel='import' href='../paper-ripple/paper-ripple.html'>
+<link rel='import' href='../eras-external/moment.html'>
+<link rel='import' href='eras-calendar.html'>
+<link rel='import' href='eras-date-display.html'>
+<link rel='import' href='eras-years.html'>
+
+<!--
+`eras-date-range`
+
+### Styling
+
+Property|Description|Default
+--------|-----------|-------
+`--theme-colour`|Colour of the header and selected date's cell|`--primary-color`
+`--theme-light-colour`|Alternate text colour & range colour|`--light-primary-color`
+`--eras-date-width`|Width of each date picker|`270px`
+`--eras-date-options-width`|Width of the quick options area|`200px`
+`--eras-calendar-padding`|Padding on either side of the calendar pages|`10px`
+
+@demo demo/eras-date-range_demo.html
+-->
+<dom-module id='eras-date-range'>
+  <template>
+    <style include='iron-flex iron-flex-alignment'>
+       :host {
+        display: block;
+        overflow: hidden;
+        /* public */
+        --eras-date-width: 270px;
+        --eras-date-options-width: 200px;
+        /* for children */
+        --eras-calendar-width: calc(var(--eras-date-width) - var(--eras-calendar-padding, 10px) * 2);
+        --eras-calendar-cell-size: calc(var(--eras-calendar-width) / 7);
+        --eras-calendar-cell-margin: 2px;
+        --eras-calendar-nav-height: 40px;
+        --eras-calendar-height: calc(var(--eras-calendar-cell-size, 35px) * 7 + var(--eras-calendar-nav-height));
+        /* 6 date rows + nav = 7 */
+        width: calc(var(--eras-date-width) * 2);
+      }
+
+      #display {
+        background-color: var(--theme-colour, --primary-color);
+      }
+
+      #display>iron-icon,
+      #display paper-menu-button {
+        color: var(--light-theme-colour, --light-primary-color);
+      }
+
+      .picker {
+        width: var(--eras-date-width);
+        height: var(--eras-calendar-height);
+        float: left;
+        overflow: hidden;
+      }
+
+      .picker:first-child {
+        border-right: 1px solid var(--paper-grey-300);
+        box-sizing: border-box;
+      }
+
+      #display>* {
+        width: 40px;
+        padding: 5px;
+      }
+
+      #display>eras-date-display {
+        width: calc((var(--eras-date-width)) - 75px);
+      }
+
+      #display>eras-date-display:first-of-type {
+        text-align: right;
+      }
+
+      #defaultRanges paper-item {
+        cursor: pointer;
+      }
+    </style>
+    <div id="display" class='layout horizontal center'>
+      <div></div>
+      <eras-date-display id='fromDisplay' value="{{from}}" on-year-tapped='_showFromYears'></eras-date-display>
+      <iron-icon icon="icons:arrow-forward"></iron-icon>
+      <eras-date-display id='toDisplay' value="{{to}}" on-year-tapped='_showToYears'></eras-date-display>
+
+      <paper-menu-button>
+        <paper-icon-button class="dropdown-trigger" icon="icons:menu"></paper-icon-button>
+        <paper-menu id='defaultRanges' class="dropdown-content">
+          <paper-item data-target='today' on-tap='_setDefaultRange'>Today</paper-item>
+          <paper-item data-target='yesterday' on-tap='_setDefaultRange'>Yesterday</paper-item>
+          <paper-item data-target='last7' on-tap='_setDefaultRange'>Last 7 days</paper-item>
+          <paper-item data-target='last30' on-tap='_setDefaultRange'>Last 30 days</paper-item>
+          <paper-item data-target='thisMonth' on-tap='_setDefaultRange'>This month</paper-item>
+          <paper-item data-target='lastMonth' on-tap='_setDefaultRange'>Last month</paper-item>
+          <paper-item data-target='thisYear' on-tap='_setDefaultRange'>This year</paper-item>
+          <paper-item data-target='lastYear' on-tap='_setDefaultRange'>Last year</paper-item>
+          <paper-item data-target='all' on-tap='_setDefaultRange'>All</paper-item>
+        </paper-menu>
+      </paper-menu-button>
+    </div>
+    <div id='container'>
+      <neon-animated-pages id='fromPicker' class='picker' selected='{{_fromPage}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
+        <eras-calendar id='fromCalendar' value='{{from}}' min='{{min}}' max='{{to}}' from$='{{from}}' to$='{{to}}'></eras-calendar>
+        <eras-years id='fromYears' value='{{from}}' min='{{min}}' max='{{to}}' on-year-selected='_changeFromYear' on-year-close-requested='_closeFromYears'></eras-years>
+      </neon-animated-pages>
+
+      <neon-animated-pages id='toPicker' class='picker' selected='{{_toPage}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
+        <eras-calendar id='toCalendar' value='{{to}}' min='{{from}}' max='{{max}}' from$='{{from}}' to$='{{to}}'></eras-calendar>
+        <eras-years id='toYears' value='{{to}}' min='{{from}}' max='{{max}}' on-year-selected='_changeToYear' on-year-close-requested='_closeToYears'></eras-years>
+      </neon-animated-pages>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'eras-date-range',
+      properties: {
+        /** The start of a date range in 'YYYY-MM-DD' format. */
+        from: String,
+
+        /** The end of a date range in 'YYYY-MM-DD' format. */
+        to: String,
+
+        /** The earliest date allowed in 'YYYY-MM-DD' format.  */
+        min: String,
+
+        /** The latest date allowed in 'YYYY-MM-DD' format. */
+        max: String,
+
+        /** The index of the **from** calendar page to show (0 or 1) */
+        _fromPage: {
+          type: Number,
+          value: 0
+        },
+
+        /** The index of the **to** calendar page to show (0 or 1) */
+        _toPage: {
+          type: Number,
+          value: 0
+        },
+
+        /** The animation to use for the incoming `neon-animated-pages` */
+        _entry: {
+          type: String,
+          value: ''
+        },
+
+        /** The animation to use for the outgoing `neon-animated-pages` */
+        _exit: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * An associative array of animations to use when transitioning between pages.
+         * @type {String[]}
+         */
+        _animations: {
+          type: Array,
+          readOnly: true,
+          value: {
+            'to-left': 'slide-left-animation',
+            'to-right': 'slide-right-animation',
+            'from-left': 'slide-from-left-animation',
+            'from-right': 'slide-from-right-animation'
+          }
+        }
+      },
+
+      observers: [
+        '_fromChanged(from, min, max)',
+        '_toChanged(to, min, max)'
+      ],
+
+      attached: function () {
+        var f = 'YYYY-MM-DD';
+
+        // default the range to the last 7 days if none provided
+        // or 7 days from either `from` or `to` if only one is provided
+        if (!this.from && !this.to) {
+          this.to = moment.utc().format(f);
+          this.from = moment.utc().subtract(7, 'days').format(f);
+        } else if (this.from && !this.to) {
+          this.to = moment.utc(this.from, f).add(7, 'days').format(f);
+        } else if (!this.from && this.to) {
+          this.from = moment.utc(this.to, f).subtract(7, 'days').format(f);
+        }
+
+        // default `min` to 10 years before `from` if not provided
+        if (!this.min)
+          this.min = moment.utc(this.from, f).subtract(10, 'years').format(f);
+
+        // default `max` to 5 years after `to` if not provided
+        if (!this.max)
+          this.max = moment.utc(this.to, f).add(5, 'years').format(f);
+
+        // coerce `from` and `to` to be within `min` and `max`
+        var _from = moment.utc(this.from, f);
+        var _to = moment.utc(this.to, f);
+        var _min = moment.utc(this.min, f);
+        var _max = moment.utc(this.max, f);
+
+        if (_from.isBefore(_min))
+          this.from = this.min;
+
+        if (_from.isAfter(_max))
+          this.from = this.max;
+
+        if (_to.isBefore(_min))
+          this.to = this.min;
+
+        if (_to.isAfter(_max))
+          this.to = this.max;
+
+        // update the calendars
+        this.$.fromCalendar.change(moment.utc(this.from, f).format('YYYY-MM'));
+        this.$.toCalendar.change(moment.utc(this.to, f).format('YYYY-MM'));
+      },
+
+      /**
+       * Observer that keeps `from` within
+       * the range specified by `min` and `max` when there
+       * are changes to any of those 3 properties.
+       * @param {String} from
+       * @param {String} min
+       * @param {String} max
+       */
+      _fromChanged: function (from, min, max) {
+        if (!from || !min || !max)
+          return;
+
+        var f = 'YYYY-MM-DD';
+        var _from = moment(from, f);
+        var _min = moment(min, f);
+        var _max = moment(max, f);
+
+        if (_from.isBefore(_min))
+          this.from = this.min;
+        else if (_from.isAfter(_max))
+          this.from = this.max;
+
+        this.$.fromCalendar._change(moment.utc(this.from, f).format('YYYY-MM'));
+      },
+
+      /**
+       * Observer that keeps `to` within
+       * the range specified by `min` and `max` when there
+       * are changes to any of those 3 properties.
+       * @param {String} to
+       * @param {String} min
+       * @param {String} max
+       */
+      _toChanged: function (to, min, max) {
+        if (!to || !min || !max)
+          return;
+
+        var f = 'YYYY-MM-DD';
+        var _to = moment(to, f);
+        var _min = moment(min, f);
+        var _max = moment(max, f);
+
+        if (_to.isBefore(_min))
+          this.to = this.min;
+        else if (_to.isAfter(_max))
+          this.to = this.max;
+
+        this.$.toCalendar._change(moment.utc(this.to, f).format('YYYY-MM'));
+      },
+
+      /**
+       * Slide the `from` year picker into view and call
+       * `eras-years.update()` to scroll the selected
+       * year into view.
+       */
+      _showFromYears: function () {
+        this.$.fromDisplay.setAttribute('focus-years', '');
+        this._entry = this._animations['from-left'];
+        this._exit = this._animations['to-right'];
+        this._fromPage = 1;
+        this.$.fromYears.update();
+      },
+
+      /**
+       * Slide the `from` year picker into view and call
+       * `eras-years.update()` to scroll the selected
+       * year into view.
+       */
+      _showToYears: function () {
+        this.$.toDisplay.setAttribute('focus-years', '');
+        this._entry = this._animations['from-left'];
+        this._exit = this._animations['to-right'];
+        this._toPage = 1;
+        this.$.toYears.update();
+      },
+
+      /**
+       * Update the `from` month being displayed with the 
+       * selected year.
+       */
+      _changeFromYear: function (e) {
+        var year = e.detail.year;
+        if (!year)
+          return;
+
+        var month = moment(this.$.fromCalendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
+        this.$.fromCalendar.change(month);
+      },
+
+      /**
+       * Slides the `from` year picker our and the calendar
+       * back into view.
+       */
+      _closeFromYears: function () {
+        this.$.fromDisplay.removeAttribute('focus-years');
+        this._entry = this._animations['from-right'];
+        this._exit = this._animations['to-left'];
+        this._fromPage = 0;
+      },
+
+      /**
+       * Update the `to` month being displayed with the 
+       * selected year.
+       */
+      _changeToYear: function (e) {
+        var year = e.detail.year;
+        if (!year)
+          return;
+
+        var month = moment(this.$.toCalendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
+        this.$.toCalendar.change(month);
+      },
+
+      /**
+       * Slides the `to` year picker our and the calendar
+       * back into view.
+       */
+      _closeToYears: function () {
+        this.$.toDisplay.removeAttribute('focus-years');
+        this._entry = this._animations['from-right'];
+        this._exit = this._animations['to-left'];
+        this._toPage = 0;
+      },
+
+      /**
+       * Set `from` and `to` to the range requested
+       * by clicking on one of the default options.
+       * @param {Event} e `tap` event from `#defaultRanges>paper-item`s
+       */
+      _setDefaultRange: function (e) {
+        var range = this._getDefaultRange(e.target.dataset.target);
+        this.from = range.from;
+        this.to = range.to;
+      },
+
+      /**
+       * Gets one of the default ranges
+       * @param {String} choice One of: today | yesterday | last7 | last30 | thisMonth | lastMonth | thisYear | lastYear | all
+       * @param {String} t **FOR TESTING ONLY** Use to set "today" so tests get consistant results.
+       * @return {{from:String,to:String}}
+       */
+      _getDefaultRange: function (choice, t) {
+        var f = 'YYYY-MM-DD';
+        var t = t || moment.utc().format(f);
+
+        switch (choice) {
+          case 'today':
+            return {
+              from: moment.utc(t, f).format(f),
+              to: moment.utc(t, f).format(f)
+            };
+
+          case 'yesterday':
+            return {
+              from: moment.utc(t, f).subtract(1, 'day').format(f),
+              to: moment.utc(t, f).subtract(1, 'day').format(f)
+            };
+
+          case 'last7':
+            return {
+              from: moment.utc(t, f).subtract(7, 'days').format(f),
+              to: moment.utc(t, f).format(f)
+            };
+
+          case 'last30':
+            return {
+              from: moment.utc(t, f).subtract(30, 'days').format(f),
+              to: moment.utc(t, f).format(f)
+            };
+
+          case 'thisMonth':
+            var m = moment.utc(t, f);
+            return {
+              from: m.startOf('month').format(f),
+              to: m.endOf('month').format(f)
+            };
+
+          case 'lastMonth':
+            var m = moment.utc(t, f).subtract(1, 'month');
+            return {
+              from: m.startOf('month').format(f),
+              to: m.endOf('month').format(f)
+            };
+
+          case 'thisYear':
+            var m = moment.utc(t, f);
+            return {
+              from: m.startOf('year').format(f),
+              to: m.endOf('year').format(f)
+            };
+
+          case 'lastYear':
+            var m = moment.utc(t, f).subtract(1, 'year');
+            return {
+              from: m.startOf('year').format(f),
+              to: m.endOf('year').format(f)
+            };
+
+          case 'all':
+          default:
+            return {
+              from: this.min,
+              to: this.max
+            };
+        }
+      }
+    });
+  </script>
+</dom-module>
