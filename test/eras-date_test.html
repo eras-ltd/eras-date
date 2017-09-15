@@ -12,15 +12,13 @@
 
   <script src='../bower_components/iron-test-helpers/mock-interactions.js'></script>
   <script src='../bower_components/moment/moment.js'></script>
-  <link rel='import' href='../eras-calendar-page.html'>
-  <link rel='import' href='../eras-calendar.html'>
   <link rel='import' href='../eras-date.html'>
 </head>
 
 <body>
   <test-fixture id='date-fixture'>
-    <template>
-      <eras-date value='2017-04-18' min='1900-01-01' max='2020-12-31'></eras-date>
+    <template is='dom-template'>
+      <eras-date value='{{value}}' min='{{min}}' max='{{max}}'></eras-date>
     </template>
   </test-fixture>
 
@@ -28,41 +26,116 @@
     suite('eras-date', function () {
       var el;
 
-      setup(function () {
-        el = fixture('date-fixture');
-      });
+      suite('setup', function () {
 
-      test('instantiation', function () {
-        assert.equal(el.is, 'eras-date');
-      });
+        test('instantiation', function () {
+          el = fixture('date-fixture');
+          assert.equal(el.is, 'eras-date');
+        });
 
-      test('selection', function (done) {
-        flush(function () {
-          var target = '1986-02-28';
-          MockInteractions.tap(el.$.display.$.year);
+        suite('defaults', function () {
+          var dataTest = function (input, expected) {
+            return function (done) {
+              el = fixture('date-fixture', input);
 
-          // need to wait for the animations to finish before 
-          // we can click on the buttons
-          // sadly the event that signifies they finish doesn't bubble
-          setTimeout(function () {
-            MockInteractions.tap(el.$.years.$.list.items[34]);
+              var props = ['value', 'min', 'max'];
 
-            setTimeout(function () {
-              MockInteractions.tap(el.$.calendar.$.previous);
-              MockInteractions.tap(el.$.calendar.$.previous);
+              for (var i = 0; i < props.length; i++) {
+                assert.equal(expected[props[i]], el[props[i]],
+                  'expected `' + props[i] + '` to equal `' + expected[props[i]] + '` not `' + el[props[i]] + '`');
+              };
 
-              var page = el.$.calendar.$.pages.querySelector('[index=\'' + el.$.calendar._page + '\']');
-              var dates = page.$.dates.querySelectorAll('.cell:not(.blank)');
-              dates[27].click();
-              assert.equal(target, el.value, 'expected ' + target + ' to have been selected.');      
               done();
-            }, 600);
-          }, 600);
+            };
+          };
 
-          
+          var f = 'YYYY-MM-DD';
+          var year = parseInt(moment.utc().format('YYYY'));
+          var data = [
+            {
+              name: 'nothing',
+              input: {},
+              expected: {
+                value: moment.utc().format(f),
+                min: moment.utc().subtract(10, 'years').format(f),
+                max: moment.utc().add(5, 'years').format(f)
+              }
+            },
+            {
+              name: 'value',
+              input: { value: '2017-05-15' },
+              expected: {
+                value: '2017-05-15',
+                min: '2007-05-15',
+                max: '2022-05-15'
+              }
+            },
+            {
+              name: 'min & max',
+              input: { min: year + '-01-01', max: year + '-12-31' },
+              expected: {
+                value: moment.utc().format(f),
+                min: year + '-01-01',
+                max: year + '-12-31'
+              }
+            },
+            {
+              name: 'coerce to min',
+              input: { min: (year + 1) + '-01-01', max: (year + 1) + '-12-31' },
+              expected: {
+                value: (year + 1) + '-01-01',
+                min: (year + 1) + '-01-01',
+                max: (year + 1) + '-12-31'
+              }
+            },
+            {
+              name: 'coerce to max',
+              input: { min: '2010-01-01', max: '2010-12-31' },
+              expected: {
+                value: '2010-12-31',
+                min: '2010-01-01',
+                max: '2010-12-31'
+              }
+            },
+          ];
 
+          for (var i = 0; i < data.length; i++)
+            test(data[i].name, dataTest(data[i].input, data[i].expected));
         });
       });
+
+      suite('selection', function () {
+        setup(function () {
+          el = fixture('date-fixture', { value: '2017-04-18', min: '1900-01-01', max: '2020-12-31' });
+        });
+
+        test('selection', function (done) {
+          flush(function () {
+            var target = '1986-02-28';
+            MockInteractions.tap(el.$.display.$.year);
+
+            // need to wait for the animations to finish before 
+            // we can click on the buttons
+            // sadly the event that signifies they finish doesn't bubble
+            setTimeout(function () {
+              MockInteractions.tap(el.$.years.$.list.items[34]);
+
+              setTimeout(function () {
+                MockInteractions.tap(el.$.calendar.$.previous);
+                MockInteractions.tap(el.$.calendar.$.previous);
+
+                var page = el.$.calendar.$.pages.querySelector('[index=\'' + el.$.calendar._page + '\']');
+                var dates = page.$.dates.querySelectorAll('.cell:not(.blank)');
+                dates[27].click();
+                assert.equal(target, el.value, 'expected ' + target + ' to have been selected.');
+                done();
+              }, 600);
+            }, 600);
+          });
+        });
+      });
+
+
     });
   </script>
 </body>

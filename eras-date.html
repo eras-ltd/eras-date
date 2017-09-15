@@ -109,28 +109,24 @@ Property|Description|Default
       },
 
       attached: function () {
-        if (!this.min && !this.max && this.value) {
-          this.min = moment(this.value, 'YYYY-MM-DD').subtract(10, 'years').format('YYYY-MM-DD');
-          this.max = moment().add(5, 'years').format('YYYY-MM-DD');
-        } else if (!this.min && !this.max) {
-          this.min = moment().subtract(10, 'years').format('YYYY-MM-DD');
-          this.max = moment().add(5, 'years').format('YYYY-MM-DD');
-        } else if (!this.min) {
-          this.min = moment(this.max, 'YYYY-MM-DD').subtract(15, 'years').format('YYYY-MM-DD');
-        } else if (!this.max) {
-          this.max = moment(this.min, 'YYYY-MM-DD').add(15, 'years').format('YYYY-MM-DD');
-        }
+        var f = 'YYYY-MM-DD';
 
         if (!this.value)
-          this.value = moment().format('YYYY-MM-DD');
+          this.value = moment.utc().format(f);
 
-        if (moment(this.value, 'YYYY-MM-DD').isBefore(moment(this.min, 'YYYY-MM-DD')))
+        if (!this.min)
+          this.min = moment.utc(this.value, f).subtract(10, 'years').format(f);
+
+        if (!this.max)
+          this.max = moment.utc(this.value, f).add(5, 'years').format(f);
+
+        if (moment.utc(this.value, f).isBefore(moment(this.min, f)))
           this.value = this.min;
 
-        if (moment(this.value, 'YYYY-MM-DD').isAfter(moment(this.max, 'YYYY-MM-DD')))
+        if (moment.utc(this.value, f).isAfter(moment(this.max, f)))
           this.value = this.max;
 
-        this.$.calendar.change(moment(this.value, 'YYYY-MM-DD').format('YYYY-MM'));
+        this.$.calendar.change(moment.utc(this.value, f).format('YYYY-MM'));
       },
 
       /**
@@ -147,19 +143,22 @@ Property|Description|Default
       },
 
       /**
-       * Slide the calendar back into view and update 
-       * the month being displayed with the selected 
-       * year.
+       * Update the month being displayed with the 
+       * selected year.
        */
       _changeYear: function (e) {
         var year = e.detail.year;
         if (!year)
           return;
 
-        var month = moment(this.$.calendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
+        var month = moment.utc(this.$.calendar.month, 'YYYY-MM').year(year).format('YYYY-MM');
         this.$.calendar.change(month);
       },
 
+      /**
+       * Slides the year picker out and the calendar
+       * back into view.
+       */
       _closeYears: function () {
         this.$.display.removeAttribute('focus-years');
         this._entry = this._animations['from-right'];
