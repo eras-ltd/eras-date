@@ -18,7 +18,7 @@
 <body>
   <test-fixture id='date-fixture'>
     <template is='dom-template'>
-      <eras-date value='{{value}}' min='{{min}}' max='{{max}}'></eras-date>
+      <eras-date value='{{value}}' min='{{min}}' max='{{max}}' required$='{{required}}'></eras-date>
     </template>
   </test-fixture>
 
@@ -56,6 +56,15 @@
               name: 'nothing',
               input: {},
               expected: {
+                value: undefined,
+                min: moment.utc().subtract(10, 'years').format(f),
+                max: moment.utc().add(5, 'years').format(f)
+              }
+            },
+            {
+              name: 'nothing but required',
+              input: { required: true },
+              expected: {
                 value: moment.utc().format(f),
                 min: moment.utc().subtract(10, 'years').format(f),
                 max: moment.utc().add(5, 'years').format(f)
@@ -74,14 +83,14 @@
               name: 'min & max',
               input: { min: year + '-01-01', max: year + '-12-31' },
               expected: {
-                value: moment.utc().format(f),
+                value: undefined,
                 min: year + '-01-01',
                 max: year + '-12-31'
               }
             },
             {
               name: 'coerce to min',
-              input: { min: (year + 1) + '-01-01', max: (year + 1) + '-12-31' },
+              input: { min: (year + 1) + '-01-01', max: (year + 1) + '-12-31', required: true },
               expected: {
                 value: (year + 1) + '-01-01',
                 min: (year + 1) + '-01-01',
@@ -90,7 +99,7 @@
             },
             {
               name: 'coerce to max',
-              input: { min: '2010-01-01', max: '2010-12-31' },
+              input: { min: '2010-01-01', max: '2010-12-31', required: true },
               expected: {
                 value: '2010-12-31',
                 min: '2010-01-01',
@@ -112,7 +121,7 @@
         test('selection', function (done) {
           flush(function () {
             var target = '1986-02-28';
-            MockInteractions.tap(el.$.display.$.year);
+            MockInteractions.tap(el.$.display.$$('#year'));
 
             // need to wait for the animations to finish before 
             // we can click on the buttons

@@ -1,4 +1,5 @@
 <link rel='import' href='../polymer/polymer.html'>
+<link rel='import' href='../iron-flex-layout/iron-flex-layout-classes.html'>
 <link rel='import' href='../paper-ripple/paper-ripple.html'>
 <link rel='import' href='../eras-external/moment.html'>
 <!--
@@ -14,11 +15,15 @@ Property|Description|Default
 -->
 <dom-module id='eras-date-display'>
   <template>
-    <style>
+    <style include='iron-flex'>
        :host {
         display: block;
         background-color: var(--theme-colour, --primary-color);
-        padding: var(--eras-calendar-padding, 10px);
+        padding: var(--eras-calendar-padding, 10px);        
+      }
+
+      #container {
+        height: 50px;
       }
 
        :host[focus-years] #date {
@@ -49,13 +54,29 @@ Property|Description|Default
         padding: 3px 5px;
         position: relative;
       }
+
+      #no-selection {
+        color: var(--theme-light-colour, --light-primary-color);
+        font-size: 22px;
+        font-weight: bold;
+        cursor: pointer;
+      }
     </style>
 
-    <div id='year' on-tap='_yearTapped'>
-      {{_date.year}}
-      <paper-ripple></paper-ripple>
+    <div id='container' class='layout vertical'>
+      <template is='dom-if' if='{{value}}'>
+        <div id='year' on-tap='_openYears'>
+          {{_date.year}}
+          <paper-ripple></paper-ripple>
+        </div>
+        <div id='date'>{{_date.day}}, {{_date.date}} {{_date.month}}</div>
+      </template>
+      <template is='dom-if' if='{{!value}}'>
+        <div class='flex'></div>
+        <div id='no-selection' on-tap='_openYears'>No date selected</div>
+        <div class='flex'></div>
+      </template>
     </div>
-    <div id='date'>{{_date.day}}, {{_date.date}} {{_date.month}}</div>
 
   </template>
   <script>
@@ -65,7 +86,10 @@ Property|Description|Default
         /**
          * The currently selected date in the 'YYYY-MM-DD' format.
          */
-        value: String,
+        value: {
+          type: String,
+          value: null
+        },
 
         /**
          * Object containing info used to displaye the currently
@@ -89,15 +113,15 @@ Property|Description|Default
       },
 
       /**
-       * Fires the `year-tapped` event when the year is tapped.
+       * Fires the `year-open-requested` event when the year is tapped.
        */
-      _yearTapped: function() {
-        this.fire('year-tapped');
+      _openYears: function () {
+        this.fire('year-open-requested');
       }
 
       /**
        * Fired when the year is tapped. Used to open up the year selector.
-       * @event year-tapped
+       * @event year-open-requested
        */
     });
   </script>

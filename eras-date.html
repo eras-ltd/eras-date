@@ -50,7 +50,7 @@ Property|Description|Default
       }
     </style>
 
-    <eras-date-display id='display' value='{{value}}' on-year-tapped='_showYears'></eras-date-display>
+    <eras-date-display id='display' value='{{value}}' on-year-open-requested='_showYears'></eras-date-display>
 
     <neon-animated-pages id='pages' selected='{{_page}}' entry-animation='{{_entry}}' exit-animation='{{_exit}}'>
       <eras-calendar id='calendar' value='{{value}}' min='{{min}}' max='{{max}}'></eras-calendar>
@@ -74,6 +74,12 @@ Property|Description|Default
 
         /** The latest date allowed in 'YYYY-MM-DD' format. */
         max: String,
+
+        /** Whether or not a value is required */
+        required: {
+          type: Boolean,
+          value: false
+        },
 
         /** The index of the calendar page to show (0 or 1) */
         _page: {
@@ -111,6 +117,9 @@ Property|Description|Default
       attached: function () {
         var f = 'YYYY-MM-DD';
 
+        // keep track of original value before defaulting and coercing
+        var original = this.value;
+
         if (!this.value)
           this.value = moment.utc().format(f);
 
@@ -127,6 +136,11 @@ Property|Description|Default
           this.value = this.max;
 
         this.$.calendar.change(moment.utc(this.value, f).format('YYYY-MM'));
+
+        // if no original value was provided and a value is not required
+        // revert back to the original value
+        if(!original && !this.required)
+          this.value = original;
       },
 
       /**

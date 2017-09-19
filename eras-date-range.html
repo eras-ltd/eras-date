@@ -89,9 +89,9 @@ Property|Description|Default
     </style>
     <div id="display" class='layout horizontal center'>
       <div></div>
-      <eras-date-display id='fromDisplay' value="{{from}}" on-year-tapped='_showFromYears'></eras-date-display>
+      <eras-date-display id='fromDisplay' value="{{from}}" on-year-open-requested='_showFromYears'></eras-date-display>
       <iron-icon icon="icons:arrow-forward"></iron-icon>
-      <eras-date-display id='toDisplay' value="{{to}}" on-year-tapped='_showToYears'></eras-date-display>
+      <eras-date-display id='toDisplay' value="{{to}}" on-year-open-requested='_showToYears'></eras-date-display>
 
       <paper-menu-button>
         <paper-icon-button class="dropdown-trigger" icon="icons:menu"></paper-icon-button>

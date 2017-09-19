@@ -64,7 +64,7 @@ Property|Description|Default
       .cell[selected] {
         background-color: var(--theme-colour, --primary-color);
         color: white;
-      }      
+      }
 
       .cell[disabled],
       .cell.blank {
@@ -115,7 +115,7 @@ Property|Description|Default
         value: {
           type: String,
           notify: true,
-          // observer: '_valueChanged'
+          value: null
         },
 
         /** The earliest date allowed in 'YYYY-MM-DD' format.  */
@@ -219,7 +219,7 @@ Property|Description|Default
         var _from;
         var _to;
 
-        if(from && to) {
+        if (from && to) {
           _hasRange = true;
           _from = moment(from, 'YYYY-MM-DD');
           _to = moment(to, 'YYYY-MM-DD');
@@ -251,8 +251,13 @@ Property|Description|Default
        */
       _select: function (e) {
         var newDate = this.month + '-' + Polymer.dom(e).localTarget.getAttribute('date');
-        this.value = newDate;
-        this.fire('date-selected', { date: newDate });
+
+        if (this.value === newDate)
+          this.value = null;
+        else
+          this.value = newDate;
+
+        this.fire('date-selected', { date: this.value });
       }
 
       /**
