@@ -17,13 +17,14 @@
 <body>
   <test-fixture id='eras-date-range-fixture'>
     <template is='dom-template'>
-      <eras-date-range from$='{{from}}' to$='{{to}}' min$='{{min}}' max$='{{max}}'></eras-date-range>
+      <eras-date-range from$='{{from}}' to$='{{to}}' min$='{{min}}' max$='{{max}}' required$='{{required}}'></eras-date-range>
     </template>
   </test-fixture>
 
   <script>
     suite('eras-date-range', function () {
       var el;
+
       suite('setup', function () {
         setup(function () { });
         teardown(function () { });
@@ -53,8 +54,18 @@
           var year = moment.utc().format('YYYY');
           var data = [
             {
-              name: 'nothing',
+              name: 'nothing ',
               input: {},
+              expected: {
+                from: undefined,
+                to: undefined,
+                min: moment.utc().subtract(7, 'days').subtract(10, 'years').format(f),
+                max: moment.utc().add(5, 'years').format(f)
+              }
+            },
+            {
+              name: 'nothing and required',
+              input: { required: true },
               expected: {
                 from: moment.utc().subtract(7, 'days').format(f),
                 to: moment.utc().format(f),
@@ -67,7 +78,7 @@
               input: { from: '2017-07-01' },
               expected: {
                 from: '2017-07-01',
-                to: '2017-07-08',
+                to: undefined,
                 min: '2007-07-01',
                 max: '2022-07-08'
               }
@@ -76,7 +87,7 @@
               name: 'to',
               input: { to: '2017-07-01' },
               expected: {
-                from: '2017-06-24',
+                from: undefined,
                 to: '2017-07-01',
                 min: '2007-06-24',
                 max: '2022-07-01'
@@ -99,8 +110,8 @@
                 max: year + '-12-31'
               },
               expected: {
-                from: moment.utc().subtract(7, 'days').format(f),
-                to: moment.utc().format(f),
+                from: undefined,
+                to: undefined,
                 min: year + '-01-01',
                 max: year + '-12-31'
               }
@@ -160,26 +171,88 @@
           suite('_setDefaultRange', function () {
             var spy;
 
-            setup(function(){
+            setup(function () {
               spy = sinon.spy(el, '_getDefaultRange');
             });
 
-            teardown(function(){
+            teardown(function () {
               spy.restore();
             });
-            
+
             var dataTest = function (input) {
               return function (done) {
                 var item = el.$.defaultRanges.querySelector('[data-target=\'' + input + '\']');
                 MockInteractions.tap(item);
                 assert(spy.calledOnce, 'expected `el._getDefaultRange` to have been called once');
-                assert.equal(input, spy.args[0][0], 'expected `el._getDefaultRange` to have been called with `' + input + '` not `'+ spy.args[0][0] + '`');
+                assert.equal(input, spy.args[0][0], 'expected `el._getDefaultRange` to have been called with `' + input + '` not `' + spy.args[0][0] + '`');
                 done();
               };
             };
 
             for (var i = 0; i < data.length; i++)
               test(data[i].input, dataTest(data[i].input));
+          });
+        });
+      });
+
+      suite('bugs', function () {
+        suite('empty pickers when from/to have no value', function () {
+          var _min = '2010-01-01';
+          var _max = '2020-12-31';
+
+          setup(function () {
+            el = fixture('eras-date-range-fixture', {
+              min: _min,
+              max: _max
+            });
+          });
+
+          test('calendar pages', function (done) {
+            flush(function () {
+              var fromMin = el.$.fromCalendar.min;
+              var fromMax = el.$.fromCalendar.max;
+              var fromDates0 = el.$.fromCalendar.querySelector('eras-calendar-page[index=\'0\']')._dates;
+              var fromDates1 = el.$.fromCalendar.querySelector('eras-calendar-page[index=\'1\']')._dates;
+
+              var toMin = el.$.toCalendar.min;
+              var toMax = el.$.toCalendar.max;
+              var toDates0 = el.$.toCalendar.querySelector('eras-calendar-page[index=\'0\']')._dates;
+              var toDates1 = el.$.toCalendar.querySelector('eras-calendar-page[index=\'1\']')._dates;
+
+              assert.equal(_min, fromMin, 'expected `fromMin` to be `' + _min + '` not `' + fromMin + '`');
+              assert.equal(_max, fromMax, 'expected `fromMax` to be `' + _max + '` not `' + fromMax + '`');
+              assert.isAbove(fromDates0.length, 0, 'expected `#fromCalendar>eras-calendar-page[0]._dates.length` > 0');
+              assert.isAbove(fromDates1.length, 0, 'expected `#fromCalendar>eras-calendar-page[1]._dates.length` > 0');
+
+              assert.equal(_min, toMin, 'expected `toMin` to be `' + _min + '` not `' + toMin + '`');
+              assert.equal(_max, toMax, 'expected `toMax` to be `' + _max + '` not `' + toMax + '`');
+              assert.isAbove(toDates0.length, 0, 'expected `#toCalendar>eras-calendar-page[0]._dates.length` > 0');
+              assert.isAbove(toDates1.length, 0, 'expected `#toCalendar>eras-calendar-page[1]._dates.length` > 0');
+
+              done();
+            });
+          });
+
+          test('year pickers', function (done) {
+            flush(function () {
+              var fromMin = el.$.fromYears.min;
+              var fromMax = el.$.fromYears.max;
+              var fromYears = el.$.fromYears._years;
+
+              var toMin = el.$.toYears.min;
+              var toMax = el.$.toYears.max;
+              var toYears = el.$.toYears._years;
+
+              assert.equal(_min, fromMin, 'expected `fromMin` to be `' + _min + '` not `' + fromMin + `'`);
+              assert.equal(_max, fromMax, 'expected `fromMax` to be `' + _max + '` not `' + fromMax + `'`);
+              assert.isAbove(fromYears.length, 0, 'expected `#fromYears._years.length` > 0');
+
+              assert.equal(_min, toMin, 'expected `toMin` to be `' + _min + '` not `' + toMin + `'`);
+              assert.equal(_max, toMax, 'expected `ftoax` to be `' + _max + '` not `' + toMax + `'`);
+              assert.isAbove(toYears.length, 0, 'expected `#toYears._years.length` > 0');
+
+              done();
+            });
           });
         });
       });
