@@ -75,7 +75,7 @@ Property|Description|Default
          */
         _years: {
           type: Array,
-          computed: '_computeYears(value, min, max)'
+          computed: '_computeYears(min, max)'
         },
       },
 
@@ -86,7 +86,7 @@ Property|Description|Default
        * @param {String} max YYYY-MM-DD
        * @return {Number[]} YYYY
        */
-      _computeYears: function (value, min, max) {
+      _computeYears: function (min, max) {
         var min = moment(min, 'YYYY-MM-DD').year();
         var max = moment(max, 'YYYY-MM-DD').year();
         var arr = [];
