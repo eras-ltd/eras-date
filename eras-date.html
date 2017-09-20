@@ -130,7 +130,7 @@ Property|Description|Default
           this.max = moment.utc(temp, f).add(5, 'years').format(f);
 
         if (moment.utc(temp, f).isBefore(moment(this.min, f)))
-          this.value = this.min;
+          temp = this.min;
 
         if (moment.utc(temp, f).isAfter(moment(this.max, f)))
           temp = this.max;
@@ -139,7 +139,7 @@ Property|Description|Default
 
         // update `value` if we need to
         // if a value is required or one was required but is different from the defaulted/coerced
-        if(this.required || (this.value && this.value != temp))
+        if (this.required || (this.value && this.value != temp))
           this.value = temp;
       },
 
