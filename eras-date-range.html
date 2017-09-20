@@ -10,6 +10,7 @@
 <link rel='import' href='../paper-menu-button/paper-menu-button.html'>
 <link rel='import' href='../paper-ripple/paper-ripple.html'>
 <link rel='import' href='../eras-external/moment.html'>
+<link rel='import' href='eras-date-behavior.html'>
 <link rel='import' href='eras-calendar.html'>
 <link rel='import' href='eras-date-display.html'>
 <link rel='import' href='eras-years.html'>
@@ -153,7 +154,8 @@ Property|Description|Default
         /** Whether or not values are required */
         required: {
           type: Boolean,
-          value: false
+          value: false,
+          observer: '_requiredChanged'
         },
 
         /** The index of the **from** calendar page to show (0 or 1) */
@@ -202,6 +204,10 @@ Property|Description|Default
         }
       },
 
+      behaviors: [
+        Polymer.ErasDateBehavior
+      ],
+
       observers: [
         '_fromChanged(from, min, max)',
         '_toChanged(to, min, max)',
@@ -214,20 +220,10 @@ Property|Description|Default
       attached: function () {
         var f = 'YYYY-MM-DD';
 
-        // set temp variables to use for defaulting and coersion
-        var _from = this.from;
-        var _to = this.to;
-
-        // default the range to the last 7 days if none provided
-        // or 7 days from either `from` or `to` if only one is provided
-        if (!_from && !_to) {
-          _to = moment.utc().format(f);
-          _from = moment.utc().subtract(7, 'days').format(f);
-        } else if (_from && !_to) {
-          _to = moment.utc(_from, f).add(7, 'days').format(f);
-        } else if (!_from && _to) {
-          _from = moment.utc(_to, f).subtract(7, 'days').format(f);
-        }
+        // set defaults to temp variables
+        var defaults = this._defaultValues(this.from, this.to);
+        var _from = defaults.from;
+        var _to = defaults.to;
 
         // default `min` to 10 years before `from` if not provided
         if (!this.min)
@@ -238,22 +234,8 @@ Property|Description|Default
           this.max = moment.utc(_to, f).add(5, 'years').format(f);
 
         // coerce `from` and `to` to be within `min` and `max`
-        var fromMoment = moment.utc(_from, f);
-        var toMoment = moment.utc(_to, f);
-        var minMoment = moment.utc(this.min, f);
-        var maxMoment = moment.utc(this.max, f);
-
-        if (fromMoment.isBefore(minMoment))
-          _from = this.min;
-
-        if (fromMoment.isAfter(maxMoment))
-          _from = this.max;
-
-        if (toMoment.isBefore(minMoment))
-          _to = this.min;
-
-        if (toMoment.isAfter(maxMoment))
-          _to = this.max;
+        _from = this._coerceDate(_from, this.min, this.max);
+        _to = this._coerceDate(_to, this.min, this.max);
 
         // update the calendars
         this.$.fromCalendar.change(moment.utc(_from, f).format('YYYY-MM'));
@@ -271,14 +253,60 @@ Property|Description|Default
       },
 
       /**
+       * Observes changes to required and sets default `from` and 
+       * `to` if necessary.
+       * @param {Boolean} required
+       */
+      _requiredChanged: function (required) {
+        if (!required)
+          return;
+
+        var f = 'YYYY-MM-DD';
+
+        var defaults = this._defaultValues(this.from, this.to);
+        var _from = defaults.from;
+        var _to = defaults.to;
+
+        _from = this._coerceDate(_from, this.min, this.max);
+        _to = this._coerceDate(_to, this.min, this.max);
+
+        if (_from !== this.from)
+          this.from = _from;
+
+        if (_to !== this.to)
+          this.to = _to;
+      },
+
+      /**
+       * Gets default values where necessary based on the `from`
+       * and `to` dates given to it. (ie will choose a `to` date
+       * based on `from` if a value is provided)
+       * @param {String} from `YYYY-MM-DD`
+       * @param {String} to `YYYY-MM-DD`
+       * @return {{ from: String, to: String }} both in `YYYY-MM-DD` format
+       */
+      _defaultValues: function (from, to) {
+        var f = 'YYYY-MM-DD';
+
+        if (!from && !to)
+          to = moment.utc().format(f);
+        if (!to)
+          to = moment.utc(from, f).add(7, 'days').format(f);
+        if (!from)
+          from = moment.utc(to, f).subtract(7, 'days').format(f);
+
+        return { from: from, to: to };
+      },
+
+      /**
        * Updates `_fromMax` in response to changes to `max` or `to`
        * if the element has been initialised.
        * @param {Boolean} initialised `_initialised`
        * @param {String} max `max`
        * @param {String} to `to` *Optional*
        */
-      _updateFromMax: function(initialised, max, to) {
-        if(!initialised)
+      _updateFromMax: function (initialised, max, to) {
+        if (!initialised)
           return;
 
         this._fromMax = to || max;
@@ -291,8 +319,8 @@ Property|Description|Default
        * @param {String} min `min`
        * @param {String} from `from` *Optional*
        */
-      _updateToMin: function(initialised, min, from) {
-        if(!initialised)
+      _updateToMin: function (initialised, min, from) {
+        if (!initialised)
           return;
 
         this._toMin = from || min;

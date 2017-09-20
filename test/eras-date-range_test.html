@@ -32,10 +32,23 @@
         test('instantiation', function (done) {
           el = fixture('eras-date-range-fixture');
           assert.equal(el.is, 'eras-date-range');
-          done()
+          done();
         });
 
         suite('defaults', function () {
+          test('set required after init', function(done){
+            el = fixture('eras-date-range-fixture', {});
+            
+            assert.equal(undefined, el.from, 'expected `from` to be `undefined`');
+            assert.equal(undefined, el.to, 'expected `to` to be `undefined`');
+            
+            el.required = true;
+
+            assert.notEqual(undefined, el.from, 'did not expect `from` to be `undefined`');
+            assert.notEqual(undefined, el.to, 'did not expect `to` to be `undefined`');
+            done();
+          });
+
           var dataTest = function (input, expected) {
             return function (done) {
               el = fixture('eras-date-range-fixture', input);

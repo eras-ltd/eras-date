@@ -34,6 +34,15 @@
         });
 
         suite('defaults', function () {
+
+          test('set required after init', function(done){
+            el = fixture('date-fixture', { });
+            assert.equal(undefined, el.value, 'expected `value` to be `undefined`');
+            el.required = true;
+            assert.notEqual(undefined, el.value, 'did not expect `value` to be `undefined`');
+            done();
+          });
+
           var dataTest = function (input, expected) {
             return function (done) {
               el = fixture('date-fixture', input);

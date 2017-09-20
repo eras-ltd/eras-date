@@ -1,0 +1,29 @@
+<link rel="import" href="../polymer/polymer.html">
+<script>
+  /**
+   * Provides utility functions to elements dependant on dates.
+   * 
+   * @polymerBehavior Polymer.ErasDateBehaviour
+   */
+  Polymer.ErasDateBehavior = {
+    /**
+     * Ensures `input` is between `min` and `max` dates. 
+     * All params in `YYYY-MM-DD` format.
+     * @param {String} input
+     * @param {String} min
+     * @param {String} max
+     */
+    _coerceDate: function (input, min, max) {
+      var f = 'YYYY-MM-DD';
+
+      if (moment.utc(input, f).isBefore(moment.utc(min, f)))
+        input = min;
+
+      if (moment.utc(input, f).isAfter(moment.utc(max, f)))
+        input = max;
+
+      return input;
+    },
+  }
+
+</script>

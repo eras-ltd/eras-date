@@ -6,6 +6,7 @@
 <link rel='import' href='../neon-animation/animations/slide-from-right-animation.html'>
 <link rel='import' href='../paper-ripple/paper-ripple.html'>
 <link rel='import' href='../eras-external/moment.html'>
+<link rel='import' href='eras-date-behavior.html'>
 <link rel='import' href='eras-calendar.html'>
 <link rel='import' href='eras-date-display.html'>
 <link rel='import' href='eras-years.html'>
@@ -78,7 +79,8 @@ Property|Description|Default
         /** Whether or not a value is required */
         required: {
           type: Boolean,
-          value: false
+          value: false,
+          observer: '_requiredChanged'
         },
 
         /** The index of the calendar page to show (0 or 1) */
@@ -114,14 +116,15 @@ Property|Description|Default
         }
       },
 
+      behaviors: [
+        Polymer.ErasDateBehavior
+      ],
+
       attached: function () {
         var f = 'YYYY-MM-DD';
 
         // set temp variable to use for defaulting and coersion
-        var temp = this.value;
-
-        if (!temp)
-          temp = moment.utc().format(f);
+        var temp = this.value || moment.utc().format(f);
 
         if (!this.min)
           this.min = moment.utc(temp, f).subtract(10, 'years').format(f);
@@ -129,17 +132,31 @@ Property|Description|Default
         if (!this.max)
           this.max = moment.utc(temp, f).add(5, 'years').format(f);
 
-        if (moment.utc(temp, f).isBefore(moment(this.min, f)))
-          temp = this.min;
-
-        if (moment.utc(temp, f).isAfter(moment(this.max, f)))
-          temp = this.max;
+        temp = this._coerceDate(temp, this.min, this.max);
 
         this.$.calendar.change(moment.utc(temp, f).format('YYYY-MM'));
 
         // update `value` if we need to
         // if a value is required or one was required but is different from the defaulted/coerced
-        if (this.required || (this.value && this.value != temp))
+        if (this.required || (this.value && this.value !== temp))
+          this.value = temp;
+      },
+
+      /**
+       * Observes changes to required and sets a default `value` if
+       * necessary.
+       * @param {Boolean} required
+       */
+      _requiredChanged: function (required) {
+        if (!required)
+          return;
+
+        var f = 'YYYY-MM-DD';
+        var temp = this.value || moment.utc().format(f);
+
+        temp = this._coerceDate(temp, this.min, this.max);
+
+        if (temp !== this.value)
           this.value = temp;
       },
 
@@ -157,7 +174,7 @@ Property|Description|Default
       },
 
       /**
-       * Update the month being displayed with the 
+       * Update the month being displayed with the
        * selected year.
        */
       _changeYear: function (e) {
