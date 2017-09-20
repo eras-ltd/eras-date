@@ -139,14 +139,14 @@ Property|Description|Default
         /**
          * To `max` attribute for the `from` date picker should
          * equal `to` if it has a value or `max` if not.
-         * Updated by `_updateFromMax` 
+         * Updated by `_updateFromMax`
          */
         _fromMax: String,
 
         /**
          * To `min` attribute for the `to` date picker should
          * equal `from` if it has a value or `min` if not.
-         * Updated by `_updateToMin` 
+         * Updated by `_updateToMin`
          */
         _toMin: String,
 
@@ -267,12 +267,12 @@ Property|Description|Default
         if (this.required || (this.to && this.to != _to))
           this.to = _to;
 
-        this._initialised = true;        
+        this._initialised = true;
       },
 
       /**
        * Updates `_fromMax` in response to changes to `max` or `to`
-       * if the element has been initialised. 
+       * if the element has been initialised.
        * @param {Boolean} initialised `_initialised`
        * @param {String} max `max`
        * @param {String} to `to` *Optional*
