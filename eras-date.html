@@ -117,30 +117,30 @@ Property|Description|Default
       attached: function () {
         var f = 'YYYY-MM-DD';
 
-        // keep track of original value before defaulting and coercing
-        var original = this.value;
+        // set temp variable to use for defaulting and coersion
+        var temp = this.value;
 
-        if (!this.value)
-          this.value = moment.utc().format(f);
+        if (!temp)
+          temp = moment.utc().format(f);
 
         if (!this.min)
-          this.min = moment.utc(this.value, f).subtract(10, 'years').format(f);
+          this.min = moment.utc(temp, f).subtract(10, 'years').format(f);
 
         if (!this.max)
-          this.max = moment.utc(this.value, f).add(5, 'years').format(f);
+          this.max = moment.utc(temp, f).add(5, 'years').format(f);
 
-        if (moment.utc(this.value, f).isBefore(moment(this.min, f)))
+        if (moment.utc(temp, f).isBefore(moment(this.min, f)))
           this.value = this.min;
 
-        if (moment.utc(this.value, f).isAfter(moment(this.max, f)))
-          this.value = this.max;
+        if (moment.utc(temp, f).isAfter(moment(this.max, f)))
+          temp = this.max;
 
-        this.$.calendar.change(moment.utc(this.value, f).format('YYYY-MM'));
+        this.$.calendar.change(moment.utc(temp, f).format('YYYY-MM'));
 
-        // if no original value was provided and a value is not required
-        // revert back to the original value
-        if(!original && !this.required)
-          this.value = original;
+        // update `value` if we need to
+        // if a value is required or one was required but is different from the defaulted/coerced
+        if(this.required || (this.value && this.value != temp))
+          this.value = temp;
       },
 
       /**
