@@ -461,8 +461,21 @@ Property|Description|Default
        */
       _setDefaultRange: function (e) {
         var range = this._getDefaultRange(e.target.dataset.target);
-        this.from = range.from;
-        this.to = range.to;
+
+        var f = 'YYYY-MM-DD';
+        var newFrom = moment.utc(range.from, f);
+        var oldTo = moment.utc(this.to, f);
+
+        // the order in which `from` and `to` are set is important
+        // as each value is used as the min/max for the other and 
+        // anything outside of the min/max range is coerced
+        if(newFrom.isAfter(oldTo)) {
+          this.to = range.to;
+          this.from = range.from;
+        } else {
+          this.from = range.from;
+          this.to = range.to;
+        }
       },
 
       /**

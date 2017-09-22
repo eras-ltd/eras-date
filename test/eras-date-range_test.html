@@ -36,12 +36,12 @@
         });
 
         suite('defaults', function () {
-          test('set required after init', function(done){
+          test('set required after init', function (done) {
             el = fixture('eras-date-range-fixture', {});
-            
+
             assert.equal(undefined, el.from, 'expected `from` to be `undefined`');
             assert.equal(undefined, el.to, 'expected `to` to be `undefined`');
-            
+
             el.required = true;
 
             assert.notEqual(undefined, el.from, 'did not expect `from` to be `undefined`');
@@ -209,17 +209,18 @@
       });
 
       suite('bugs', function () {
-        suite('empty pickers when from/to have no value', function () {
-          var _min = '2010-01-01';
-          var _max = '2020-12-31';
+        var f = 'YYYY-MM-DD';
+        var _min = moment.utc().subtract(5, 'years').format(f);
+        var _max = moment.utc().add(5, 'years').format(f);
 
-          setup(function () {
-            el = fixture('eras-date-range-fixture', {
-              min: _min,
-              max: _max
-            });
+        setup(function () {
+          el = fixture('eras-date-range-fixture', {
+            min: _min,
+            max: _max
           });
+        });
 
+        suite('empty pickers when from/to have no value', function () {
           test('calendar pages', function (done) {
             flush(function () {
               var fromMin = el.$.fromCalendar.min;
@@ -268,6 +269,130 @@
             });
           });
         });
+
+        // when selecting `last month` then `this month` from the default options
+        // menu the `from` picker doesn't switch to the correct page
+        // seems that `_change` is being called correctly but `_switchPage` isn't
+        // being called because same month is as is currently shown is requested.
+        // looks like this is happening because the max date for the `from` picker is
+        // set to the current date from the `to` picker and the new month is being
+        // coerced to this max
+        // fix was to check if the new `from` date is after the current `to` date
+        // and if it is set `to` before `from`, if not then set `from` first
+        suite('no page switch', function () {
+          var range;
+          var lastMonthItem;
+          var thisMonthItem;
+
+          setup(function () {
+            range = sinon.spy(el, '_setDefaultRange');
+            lastMonthItem = el.$.defaultRanges.querySelector('paper-item[data-target=\'lastMonth\']');
+            thisMonthItem = el.$.defaultRanges.querySelector('paper-item[data-target=\'thisMonth\']');
+          });
+
+          teardown(function () {
+            range.restore();
+          });
+
+          test('setup', function (done) {
+            flush(function () {
+              assert.equal('paper-item', lastMonthItem.is);
+              assert.equal('lastMonth', lastMonthItem.dataset.target);
+              assert.equal('paper-item', thisMonthItem.is);
+              assert.equal('thisMonth', thisMonthItem.dataset.target);
+              done();
+            });
+          });
+
+          test('`_setDefaultRange` called', function (done) {
+            flush(function () {
+              MockInteractions.tap(lastMonthItem);
+              MockInteractions.tap(thisMonthItem);
+              assert(range.calledTwice, 'expected `_setDefaultRange` to have been called twice not: ' + range.callCount);
+              done();
+            });
+          });
+
+          suite('`eras-calendar._change()` called', function () {
+            var lastMonth = moment.utc().subtract(1, 'month').format('YYYY-MM');
+            var thisMonth = moment.utc().format('YYYY-MM');
+            var fromChange;
+            var toChange;
+
+            setup(function () {
+              fromChange = sinon.spy(el.$.fromCalendar, '_change');
+              toChange = sinon.spy(el.$.toCalendar, '_change');
+            });
+
+            teardown(function () {
+              fromChange.restore();
+              toChange.restore();
+            });
+
+            test('from', function (done) {
+              flush(function () {
+                MockInteractions.tap(lastMonthItem);
+                MockInteractions.tap(thisMonthItem);
+                assert(fromChange.calledTwice, 'expected `_change` to have been called twice not: ' + fromChange.callCount);
+                assert.equal(lastMonth, fromChange.args[0], 'expected the first call of `_change` to have been given `' + lastMonth + '`');
+                assert.equal(thisMonth, fromChange.args[1], 'expected the second call of `_change` to have been given `' + thisMonth + '`');
+                done();
+              });
+            });
+
+            test('to', function (done) {
+              flush(function () {
+                MockInteractions.tap(lastMonthItem);
+                MockInteractions.tap(thisMonthItem);
+                assert(toChange.calledTwice, 'expected `_change` to have been called twice not: ' + toChange.callCount);
+                assert.equal(lastMonth, fromChange.args[0], 'expected the first call of `_change` to have been given `' + lastMonth + '`');
+                assert.equal(thisMonth, fromChange.args[1], 'expected the second call of `_change` to have been given `' + thisMonth + '`');
+                done();
+              });
+            });
+          });
+
+          suite('`eras-calendar._switchPage()` called', function () {
+            var lastMonth = moment.utc().subtract(1, 'month').format('YYYY-MM');
+            var thisMonth = moment.utc().format('YYYY-MM');
+            var fromPage;
+            var toPage;
+
+            setup(function () {
+              fromPage = sinon.spy(el.$.fromCalendar, '_switchPage');
+              toPage = sinon.spy(el.$.toCalendar, '_switchPage');
+            });
+
+            teardown(function () {
+              fromPage.restore();
+              toPage.restore();
+            });
+
+            test('from', function (done) {
+              flush(function () {
+                MockInteractions.tap(lastMonthItem);
+                MockInteractions.tap(thisMonthItem);
+                assert(fromPage.calledTwice, 'expected `_switchPage` to have been called twice not: ' + fromPage.callCount);
+                assert.equal(lastMonth, fromPage.args[0], 'expected the first call of `_switchPage` to have been given `' + lastMonth + '`');
+                assert.equal(thisMonth, fromPage.args[1], 'expected the second call of `_switchPage` to have been given `' + thisMonth + '`');
+                done();
+              });
+            });
+
+            test('to', function (done) {
+              flush(function () {
+                MockInteractions.tap(lastMonthItem);
+                MockInteractions.tap(thisMonthItem);
+                assert(toPage.calledTwice, 'expected `_switchPage` to have been called twice not: ' + toPage.callCount);
+                assert.equal(lastMonth, fromPage.args[0], 'expected the first call of `_switchPage` to have been given `' + lastMonth + '`');
+                assert.equal(thisMonth, fromPage.args[1], 'expected the second call of `_switchPage` to have been given `' + thisMonth + '`');
+                done();
+              });
+            });
+          });
+        });
+
+
       });
     });
   </script>
