@@ -94,7 +94,7 @@ Property|Description|Default
       <iron-icon icon="icons:arrow-forward"></iron-icon>
       <eras-date-display id='toDisplay' value="{{to}}" on-year-open-requested='_showToYears'></eras-date-display>
 
-      <paper-menu-button>
+      <paper-menu-button id='defaultRangesMenu'>
         <paper-icon-button class="dropdown-trigger" icon="icons:menu"></paper-icon-button>
         <paper-menu id='defaultRanges' class="dropdown-content">
           <paper-item data-target='today' on-tap='_setDefaultRange'>Today</paper-item>
@@ -349,6 +349,9 @@ Property|Description|Default
           this.from = this.max;
 
         this.$.fromCalendar._change(moment.utc(this.from, f).format('YYYY-MM'));
+        
+        // clear the selection from the default ranges menu when the range is changed
+        this.$.defaultRanges.selected = null;
       },
 
       /**
@@ -374,6 +377,9 @@ Property|Description|Default
           this.to = this.max;
 
         this.$.toCalendar._change(moment.utc(this.to, f).format('YYYY-MM'));
+
+        // clear the selection from the default ranges menu when the range is changed
+        this.$.defaultRanges.selected = null;
       },
 
       /**
@@ -469,13 +475,18 @@ Property|Description|Default
         // the order in which `from` and `to` are set is important
         // as each value is used as the min/max for the other and 
         // anything outside of the min/max range is coerced
-        if(newFrom.isAfter(oldTo)) {
+        if (newFrom.isAfter(oldTo)) {
           this.to = range.to;
           this.from = range.from;
         } else {
           this.from = range.from;
           this.to = range.to;
         }
+
+        // if the user clicks on the already selected range it won't 
+        // close the menu automatically without this
+        if(this.$.defaultRangesMenu.opened)
+          this.$.defaultRangesMenu.close();
       },
 
       /**

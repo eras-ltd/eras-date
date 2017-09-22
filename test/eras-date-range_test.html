@@ -220,6 +220,42 @@
           });
         });
 
+        // the `paper-menu-button` menu doesn't close when clicking on the preselected option
+        // but because each item has an `on-tap` handler it still triggers the range to change
+        // just needed to check if the menu is open at the end of `_setDefaultRange` and close
+        // it if needed
+        suite('default range menu doesn\'t close', function () {
+          var button;
+          var trigger;
+          var item;
+
+          setup(function () {
+            button = el.$.defaultRangesMenu;
+            trigger = button.querySelector('paper-icon-button');
+            item = button.querySelector('paper-item[data-target=\'yesterday\']');
+          });
+
+          test('setup', function(done){
+            assert.equal('paper-menu-button', button.is);
+            assert.equal('paper-icon-button', trigger.is);
+            assert.equal('paper-item', item.is);
+            done();
+          });
+
+          test('test', function(done){
+            assert.equal(false, button.opened, 'expected menu to be closed at start');
+            MockInteractions.tap(trigger);
+            assert.equal(true, button.opened, 'expected menu to be open after menu button tap');
+            MockInteractions.tap(item);
+            assert.equal(false, button.opened, 'expected menu to be closed after item selected the first time');
+            MockInteractions.tap(trigger);
+            assert.equal(true, button.opened, 'expected menu to be open after second menu button tap');
+            MockInteractions.tap(item);
+            assert.equal(false, button.opened, 'expected menu to be closed after item selected for the second time');
+            done();
+          });
+        });       
+
         suite('empty pickers when from/to have no value', function () {
           test('calendar pages', function (done) {
             flush(function () {
